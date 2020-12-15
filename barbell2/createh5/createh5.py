@@ -1,6 +1,3 @@
-""" createh5.py A tool to create training, validation and tests sets in HDF5 format using collections of
-L3 files subdivided across multiple directories.
-"""
 import os
 import argparse
 
