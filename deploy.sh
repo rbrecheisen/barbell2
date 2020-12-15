@@ -1,4 +1,22 @@
 #!/bin/bash
+which twine
+if [ "$?" == "1" ]; then
+  echo "You do not seem to have Twine installed (wrong venv?). It is needed to upload to PyPI"
+  echo "Type 'install' to install it and continue or any other key to quit"
+  read line
+  if [ "${line}" != "install" ]; then
+    exit 0
+  fi
+  python -m pip install twine
+fi
+if [ ! -f "${HOME}/pypiusername.txt" ]; then
+  echo "Could not find ${HOME}/pypiusername.txt"
+  exit 0
+fi
+if [ ! -f "${HOME}/pypipassword.txt" ]; then
+  echo "Could not find ${HOME}/pypipassword.txt"
+  exit 0
+fi
 export CMD=${1}
 if [ "${CMD}" == "" ]; then
   export CMD=minor
