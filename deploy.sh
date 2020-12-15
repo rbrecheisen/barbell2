@@ -17,8 +17,10 @@ read line
 if [ "${line}" != "yes" ]; then
   exit 0
 fi
+echo "Type your Git commit message here below"
+read message
 git add -A
-git commit -m "Saving version ${VERSION} before deploying to PyPI"
+git commit -m "Saving version ${VERSION} before deploying to PyPI. ${message}"
 git push
 python setup.py sdist bdist_wheel
 export TWINE_USERNAME=$(cat ${HOME}/pypiusername.txt)
