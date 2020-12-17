@@ -42,6 +42,10 @@ setup(
     name='barbell2',
     packages=find_packages(include=['barbell2', 'barbell2.*']),
     setup_requires=setup_requirements,
+    entry_points="""
+        [console_scripts]
+        barbell2=barbell2.__main__:main
+    """,
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/rbrecheisen/barbell2',
