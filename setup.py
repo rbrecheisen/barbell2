@@ -44,7 +44,7 @@ setup(
     setup_requires=setup_requirements,
     entry_points="""
         [console_scripts]
-        barbell2=barbell2.__main__:main
+        barbell2=barbell2.barbell2:main
     """,
     test_suite='tests',
     tests_require=test_requirements,
