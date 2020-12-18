@@ -1,10 +1,6 @@
 import os
-import cmd2
 import pydicom
-
-from pydicom.tag import Tag
 from pydicom._dicom_dict import DicomDictionary
-
 from barbell2.lib import BasicShell
 
 
@@ -72,23 +68,29 @@ class DicomExplorerShell(BasicShell):
         self.result_manager.add_result_data(data)
         self.poutput('Loading done')
 
-    def do_show_files(self, _):
+    def do_show_files(self, n):
         """
-        Usage: show_files
-        Show all files loaded in the current result set. If you want to show files from another result set
+        Usage: show_files [n]
+        Show all (or first n) files loaded in the current result set. If you want to show files from another result set
         select it first using the set_current_result command.
         """
         files = self.result_manager.get_current_result_data()
+        n = -1 if n == '' else int(n)
+        count = 0
         for f in files:
             self.poutput(f)
-        self.poutput(len(files))
+            if count == n:
+                break
+            count += 1
+        self.poutput('Total nr. of files: {}'.format(len(files)))
 
-    def do_lookup_tag_in_dict(self, tag_name):
+    def do_lookup(self, tag_name):
         """
-        Usage: lookup_tag_in_dict <tag name>
+        Usage: lookup <tag name>
         Lookup tag <tag name> in the DICOM dictionary. You can specify only parts of a tag name, e.g.,
         "Transmit" will return multiple dictionary entries containing the word "Transmit" (like Transmit
         Coil Name). Being able to lookup tags comes in handy when you search for them in DICOM files.
+        Note that (parts of) the tag name does not have to be case-sensitive.
         """
         for key, value in DicomDictionary.items():
             output = '{}: {}'.format(key, value)
@@ -115,10 +117,10 @@ class DicomExplorerShell(BasicShell):
                 else:
                     self.poutput('Warning: tag {} cannot be found in the DICOM dictionary'.format(tag))
 
-    def do_dump_file(self, file_name):
+    def do_show_header(self, file_name):
         """
-        Usage: dump_file <file name>
-        Dump DICOM header of <file name>. If <file name> is left empty, this function will search for
+        Usage: show_header <file name>
+        Show DICOM header of <file name>. If <file name> is left empty, this function will search for
         all file paths that contain the given file name. If only one is encountered, the DICOM header will
         be displayed. If multiple files are encountered, a list of those files is displayed so that you can
         select a specific one (with its full path).
@@ -144,6 +146,25 @@ class DicomExplorerShell(BasicShell):
             for f in counted_files:
                 self.poutput(f)
             self.poutput('Please select full file path of file you want and repeat this command')
+
+    def do_check_pixels(self, _):
+        """
+        Usage: check_pixels
+        Check that each DICOM file contains pixel values that can be loaded using pydicom and NumPy. Sometimes,
+        images may be compressed in some way (e.g., using JPEG2000). In that case, they cannot be loaded with
+        pydicom and their pixel values need to be extracted to raw format.
+        """
+        files = self.result_manager.get_current_result_data()
+        count = 0
+        for f in files:
+            p = pydicom.read_file(f)
+            try:
+                p.convert_pixel_data()
+                self.poutput('OK: {}'.format(f))
+            except NotImplementedError:
+                count += 1
+                self.poutput('ERROR: could not load pixel data {}'.format(f))
+        self.poutput('Pixel data for {} out of {} files could not be loaded'.format(count, len(files)))
 
 
 def main():

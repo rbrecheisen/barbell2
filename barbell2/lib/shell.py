@@ -161,3 +161,11 @@ class BasicShell(cmd2.Cmd):
         Sets current result set to next result set.
         """
         self.result_manager.redo()
+
+    @staticmethod
+    def do_exit(_):
+        """
+        Usage: exit
+        Quits the shell application (same as quit).
+        """
+        return True

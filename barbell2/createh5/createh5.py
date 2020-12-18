@@ -16,7 +16,7 @@ def info_requested(args):
 
 
 def show_info():
-    print("""The createh5.py scripts allows you to create HDF5 files for training, validation and testing your
+    print("""The createh5.py script allows you to create HDF5 files for training, validation and testing your
     deep learning networks in Keras.""")
 
 

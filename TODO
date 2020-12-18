@@ -1,1 +1,5 @@
-* Add Git commit to deploy.sh
+dicomexplorer
+
+x add function check_pixels() that tries to load pixels using pydicom. if this fails an error is reported for that file
+x add function show_header(), it's more intuitive than dump_file
+x add git commit to deploy.sh
