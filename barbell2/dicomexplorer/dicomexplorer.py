@@ -146,7 +146,11 @@ class DicomExplorerShell(BasicShell):
             self.poutput('Please select full file path of file you want and repeat this command')
 
 
-if __name__ == '__main__':
+def main():
     import sys
     shell = DicomExplorerShell()
     sys.exit(shell.cmdloop())
+
+
+if __name__ == '__main__':
+    main()

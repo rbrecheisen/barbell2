@@ -44,8 +44,8 @@ setup(
     setup_requires=setup_requirements,
     entry_points={
         'console_scripts': [
-            'barbell2=barbell2.barbell2:main',
-            'hello=barbell2.hello:main',
+            'createh5=barbell2.createh5.createh5:main',
+            'dicomexplorer=barbell2.dicomexplorer.dicomexplorer:main',
         ],
     },
     test_suite='tests',
