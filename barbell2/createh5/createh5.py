@@ -105,15 +105,15 @@ def run():
 
     # Create training H5
     if args.training is not None:
-        create_h5(args.root_dir, args.training, os.path.join(args.output_dir, 'train.py'))
+        create_h5(args.root_dir, args.training, os.path.join(args.output_dir, 'train.h5'))
 
     # Create validation H5
     if args.validation is not None:
-        create_h5(args.root_dir, args.validation, os.path.join(args.output_dir, 'validation.py'))
+        create_h5(args.root_dir, args.validation, os.path.join(args.output_dir, 'validation.h5'))
 
     # Create test H5
     if args.test is not None:
-        create_h5(args.root_dir, args.test, os.path.join(args.output_dir, 'test.py'))
+        create_h5(args.root_dir, args.test, os.path.join(args.output_dir, 'test.h5'))
 
 
 def main():

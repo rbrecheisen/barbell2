@@ -166,7 +166,118 @@ class DicomExplorerShell(BasicShell):
             except NotImplementedError:
                 count += 1
                 self.poutput('ERROR: could not load pixel data {}'.format(f))
-        self.poutput('Pixel data for {} out of {} files could not be loaded'.format(count, len(files)))
+        if count > 0:
+            self.poutput('Pixel data for {} out of {} files could not be loaded'.format(count, len(files)))
+        else:
+            self.poutput('Pixel data OK for all files')
+
+    def do_dump_scan_props(self, output_file):
+        """
+        Usage: dump_scan_props output_file
+        Dumps following scanning properties of each DICOM file:
+
+         - Manufacturer (0x8, 0x70)
+         - Manufacturer's Model Name (0x8, 0x1090)
+         - Software Version(s) (0x18, 0x1020)
+         - Exposure Time (0x18, 0x1150)
+         - X-Ray Tube Current (0x18, 0x1151)
+         - KVP (0x18, 0x60)
+         - Slice Thickness (0x18, 0x50)
+         - Pixel Spacing (0x28, 0x30)
+         - Convolution Kernel (0x18, 0x1210)
+         - Filter Type (0x18, 0x1160)
+         - Patient Position (0x18, 0x5100)
+         - Institution Name (0x8, 0x80)
+         - Requested Procedure Description (0x32, 0x1060)
+
+        The output is written to a CSV file for easy analysis.
+        """
+        files = self.result_manager.get_current_result_data()
+        rows = []
+        for file_path in files:
+
+            p = pydicom.read_file(file_path)
+
+            manufacturer = ''
+            manufacturer_tag = (0x8, 0x70)
+            if manufacturer_tag in p:
+                manufacturer = p[manufacturer_tag].value
+
+            model_name = ''
+            model_name_tag = (0x8, 0x1090)
+            if model_name_tag in p:
+                model_name = p[model_name_tag].value
+
+            software_version = ''
+            software_version_tag = (0x18, 0x1020)
+            if software_version_tag in p:
+                software_version = p[software_version_tag].value
+
+            exposure_time = ''
+            exposure_time_tag = (0x18, 0x1150)
+            if exposure_time_tag in p:
+                exposure_time = p[exposure_time_tag].value
+
+            tube_current = ''
+            tube_current_tag = (0x18, 0x1151)
+            if tube_current_tag in p:
+                tube_current = p[tube_current_tag].value
+
+            kvp = ''
+            kvp_tag = (0x18, 0x60)
+            if kvp_tag in p:
+                kvp = p[kvp_tag].value
+
+            slice_thickness = ''
+            slice_thickness_tag = (0x18, 0x50)
+            if slice_thickness_tag in p:
+                slice_thickness = p[slice_thickness_tag].value
+
+            pixel_spacing = ''
+            pixel_spacing_tag = (0x28, 0x30)
+            if pixel_spacing_tag in p:
+                pixel_spacing = p[pixel_spacing_tag].value
+
+            convolution_kernel = ''
+            convolution_kernel_tag = (0x18, 0x1210)
+            if convolution_kernel_tag in p:
+                convolution_kernel = p[convolution_kernel_tag].value
+
+            filter_type = ''
+            filter_type_tag = (0x18, 0x1160)
+            if filter_type_tag in p:
+                filter_type = p[filter_type_tag].value
+
+            patient_position = ''
+            patient_position_tag = (0x18, 0x5100)
+            if patient_position_tag in p:
+                patient_position = p[patient_position_tag].value
+
+            institute_name = ''
+            institute_name_tag = (0x8, 0x80)
+            if institute_name_tag in p:
+                institute_name = p[institute_name_tag].value
+
+            requested_procedure = ''
+            requested_procedure_tag = (0x32, 0x1060)
+            if requested_procedure_tag in p:
+                requested_procedure = p[requested_procedure_tag].value
+
+            line = '{};{};{};{};{};{};{};{};{};{};{};{};{};{}'.format(
+                file_path, manufacturer, model_name, software_version, exposure_time, tube_current, kvp,
+                slice_thickness, pixel_spacing, convolution_kernel, filter_type, patient_position, institute_name,
+                requested_procedure)
+            rows.append(line)
+            self.poutput(line)
+
+        header = 'file_path;manufacturer;model_name;software_version;exposure_time;tube_current;kvp;slice_thickness;' \
+                 'pixel_spacing;convolution_kernel;filter_type;patient_position;institute_name;requested_procedure'
+        self.poutput('Writing scan properties to {}'.format(output_file))
+        with open(output_file, 'w') as f:
+            f.write(header + '\n')
+            for row in rows:
+                f.write(row + '\n')
+        self.poutput('Finished writing')
 
 
 def main():
