@@ -24,6 +24,12 @@ def is_dicom(file_path):
         return False
 
 
+def get_institute_name(file_path):
+    items = os.path.split(file_path)
+    institute_name = os.path.split(items[0])[1]
+    return institute_name
+
+
 class DicomExplorerShell(BasicShell):
 
     def __init__(self):
@@ -253,10 +259,7 @@ class DicomExplorerShell(BasicShell):
             if patient_position_tag in p:
                 patient_position = p[patient_position_tag].value
 
-            institute_name = ''
-            institute_name_tag = (0x8, 0x80)
-            if institute_name_tag in p:
-                institute_name = p[institute_name_tag].value
+            institute_name = get_institute_name(file_path)
 
             requested_procedure = ''
             requested_procedure_tag = (0x32, 0x1060)
