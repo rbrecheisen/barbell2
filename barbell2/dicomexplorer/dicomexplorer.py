@@ -65,6 +65,7 @@ class DicomExplorerShell(BasicShell):
                     f = os.path.join(root, f)
                     if is_dicom(f):
                         data.append(f)
+                        self.poutput(f)
         self.result_manager.add_result_data(data)
         self.poutput('Loading done')
 
@@ -147,9 +148,9 @@ class DicomExplorerShell(BasicShell):
                 self.poutput(f)
             self.poutput('Please select full file path of file you want and repeat this command')
 
-    def do_check_pixels(self, _):
+    def do_check_pixels(self, verbose):
         """
-        Usage: check_pixels
+        Usage: check_pixels [verbose]
         Check that each DICOM file contains pixel values that can be loaded using pydicom and NumPy. Sometimes,
         images may be compressed in some way (e.g., using JPEG2000). In that case, they cannot be loaded with
         pydicom and their pixel values need to be extracted to raw format.
@@ -160,7 +161,8 @@ class DicomExplorerShell(BasicShell):
             p = pydicom.read_file(f)
             try:
                 p.convert_pixel_data()
-                self.poutput('OK: {}'.format(f))
+                if verbose != '':
+                    self.poutput('OK: {}'.format(f))
             except NotImplementedError:
                 count += 1
                 self.poutput('ERROR: could not load pixel data {}'.format(f))
