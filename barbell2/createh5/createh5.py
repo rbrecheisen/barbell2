@@ -90,7 +90,7 @@ def create_h5(root_dir, collections, width, height, output_file_path):
             group = h5f.create_group('{:04d}'.format(count))
             group.create_dataset('images', data=dcm_pixels)
             group.create_dataset('labels', data=tag_pixels)
-            print('{:04d} added {}'.format(count, file_pair[0]))
+            print('{:04d} added images and labels for {}'.format(count, file_pair[0]))
             count += 1
     print('Done')
 
