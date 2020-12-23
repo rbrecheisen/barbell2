@@ -1,6 +1,7 @@
 import os
 import argparse
 import h5py
+import sys
 import pydicom
 
 from barbell2.lib.dicom import Dcm2Numpy, Tag2NumPy
@@ -27,8 +28,6 @@ def get_args():
                         help='Root folder containing collection folders')
     parser.add_argument('output_dir',
                         help='Output folder where train.h5, validation.h5 and test.h5 will be written')
-    parser.add_argument('--delete_output_dir', type=int,
-                        help='Whether to delete the output directory first (default: 0)', default=0)
     parser.add_argument('--output_file_name_training',
                         help='Output file name training set', default='training.h5')
     parser.add_argument('--output_file_name_validation',
@@ -123,11 +122,8 @@ def run():
 
     # Verify that output folder does not exist or delete it if so configured
     if os.path.isdir(args.output_dir):
-        if args.delete_output_dir is not None and args.delete_output_dir == 1:
-            os.removedirs(args.output_dir)
-        else:
-            raise MyException(
-                'Output directory "{}" exists. Please delete it or set delete_output_dir=1'.format(args.output_dir))
+        raise MyException(
+            'Output directory "{}" exists. Please delete it'.format(args.output_dir))
 
     # Verify that training, validation and test collections exist and are not empty
     if args.training is not None:
