@@ -12,7 +12,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['pytest', 'cmd2', 'gnureadline', 'pydicom', 'pandas', 'numpy', 'SimpleITK']
+requirements = ['pytest', 'cmd2', 'gnureadline', 'pydicom', 'pandas', 'numpy', 'SimpleITK', 'h5py']
 
 setup_requirements = []
 
