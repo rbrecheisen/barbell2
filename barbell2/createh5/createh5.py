@@ -1,14 +1,10 @@
 import os
 import argparse
 import h5py
-import sys
 import pydicom
 
+from barbell2.lib import MyException
 from barbell2.lib.dicom import Dcm2Numpy, Tag2NumPy
-
-
-class MyException(Exception):
-    pass
 
 
 def info_requested(args):
@@ -120,10 +116,7 @@ def run():
     if len(os.listdir(args.root_dir)) == 0:
         raise MyException('Root directory "{}" is empty'.format(args.root_dir))
 
-    # Verify that output folder does not exist or delete it if so configured
-    if os.path.isdir(args.output_dir):
-        raise MyException(
-            'Output directory "{}" exists. Please delete it'.format(args.output_dir))
+    os.makedirs(args.output_dir, exist_ok=False)
 
     # Verify that training, validation and test collections exist and are not empty
     if args.training is not None:
@@ -133,8 +126,6 @@ def run():
         check_collections(args.root_dir, args.validation)
     if args.testing is not None:
         check_collections(args.root_dir, args.testing)
-
-    os.makedirs(args.output_dir, exist_ok=True)
 
     # Create training H5
     if args.training is not None:

@@ -46,6 +46,7 @@ setup(
         'console_scripts': [
             'createh5=barbell2.createh5.createh5:main',
             'dicomexplorer=barbell2.dicomexplorer.dicomexplorer:main',
+            'dicomraw=barbell2.dicomraw.dicomraw:main',
         ],
     },
     test_suite='tests',
