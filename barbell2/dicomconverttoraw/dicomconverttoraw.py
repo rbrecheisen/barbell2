@@ -46,7 +46,7 @@ def main():
 
 if __name__ == '__main__':
     sys.argv = [
-        'dicomraw.py',
+        'dicomconverttoraw.py',
         '/Volumes/USB_SECURE1/data/radiomics/projects/leanne/raw_anon_gdcm',
         '/Volumes/USB_SECURE1/data/radiomics/projects/leanne/raw_anon_gdcm_uncompressed',
     ]
