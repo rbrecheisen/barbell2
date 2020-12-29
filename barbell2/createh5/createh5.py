@@ -214,7 +214,6 @@ def run():
             os.path.join(args.output_dir, args.output_file_name_validation))
 
 
-
 def main():
     try:
         run()
