@@ -1,4 +1,5 @@
 import os
+import json
 import pydicom
 from pydicom._dicom_dict import DicomDictionary
 from barbell2.lib import BasicShell
@@ -176,6 +177,28 @@ class DicomExplorerShell(BasicShell):
             self.poutput('Pixel data for {} out of {} files could not be loaded'.format(count, len(files)))
         else:
             self.poutput('Pixel data OK for all files')
+
+    def do_dump_scan_props2(self, output_file):
+        files = self.result_manager.get_current_result_data()
+        scan_props_tags = {
+            'manufacturer': (0x8, 0x70),
+            'model_name': (0x8, 0x1090),
+            'software_version': (0x18, 0x1020),
+            'exposure_time': (0x18, 0x1150),
+            'tube_current': (0x18, 0x1151),
+        }
+        scan_props = {}
+        for f in files:
+            p = pydicom.read_file(f)
+            for key in scan_props_tags.keys():
+                scan_props[key] = []
+                tag = scan_props_tags[key]
+                if tag in p:
+                    entry = str(p[tag].value)
+                    if entry not in scan_props:
+                        scan_props[key].append(entry)
+            self.poutput(f)
+        self.poutput(json.dumps(scan_props, indent=4))
 
     def do_dump_scan_props(self, output_file):
         """

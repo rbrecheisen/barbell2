@@ -6,5 +6,11 @@ cd ../barbell2/createh5
 python createh5.py \
     /Volumes/USB_SECURE1/data/radiomics/projects/deepseg/data/mega/final \
     ${HOME}/Desktop/h5 \
-    --split="HEERLEN, NEWEPOC" \
+    --split="FROGS, HEERLEN, MAASTRICHT_AKEN, NEWEPOC" \
     --split_percentage=0.8
+
+#python createh5.py \
+#    /Volumes/USB_SECURE1/data/radiomics/projects/deepseg/data/mega/final \
+#    ${HOME}/Desktop/h5 \
+#    --split="NEWEPOC" \
+#    --split_percentage=0.8

@@ -4,6 +4,8 @@ import h5py
 import pydicom
 import random
 
+import numpy as np
+
 from barbell2.lib import MyException
 from barbell2.lib.dicom import Dcm2Numpy, Tag2NumPy
 
@@ -75,6 +77,7 @@ def collect_files(root_dir, collections, width, height):
     return file_list
 
 
+# TODO: check that shuffling and train_test_split work correctly with a nested list file_list
 def shuffle_file_list(file_list):
     random.shuffle(file_list)
     return file_list
@@ -85,12 +88,42 @@ def split_file_list(file_list, percentage):
     return x_train, x_test
 
 
+def get_dcm_pixels(file_path):
+    dcm2numpy = Dcm2Numpy()
+    dcm2numpy.set_input_dicom_file_path(file_path)
+    dcm2numpy.execute()
+    return dcm2numpy.get_output_numpy_array()
+
+
+def get_tag_pixels(file_path, shape):
+    tag2numpy = Tag2NumPy(shape)
+    tag2numpy.set_input_tag_file_path(file_path)
+    tag2numpy.execute()
+    pixels = tag2numpy.get_output_numpy_array()
+    return pixels
+
+
+def update_labels(pixels):
+    # Alberta protocol: AIR = 0, MUSCLE = 1, IMAT = 2, VAT = 5, SAT = 7
+    # pixels[pixels == 0] = 0
+    pixels[pixels == 2] = 0
+    pixels[pixels == 12] = 0
+    pixels[pixels == 14] = 0
+    # pixels[pixels == 1] = 1
+    pixels[pixels == 5] = 2
+    pixels[pixels == 7] = 3
+    return pixels
+
+
 def create_h5_from_file_list(file_list, output_file_path):
     with h5py.File(output_file_path, 'w') as h5f:
         count = 1
         for file_pair in file_list:
             dcm_pixels = get_dcm_pixels(file_pair[0])
             tag_pixels = get_tag_pixels(file_pair[1], dcm_pixels.shape)
+            tag_pixels = update_labels(tag_pixels)
+            labels = np.unique(tag_pixels)
+            print(labels)
             group = h5f.create_group('{:04d}'.format(count))
             group.create_dataset('images', data=dcm_pixels)
             group.create_dataset('labels', data=tag_pixels)
@@ -129,20 +162,6 @@ def create_h5_from_file_list(file_list, output_file_path):
 #     print('Done')
 
 
-def get_dcm_pixels(file_path):
-    dcm2numpy = Dcm2Numpy()
-    dcm2numpy.set_input_dicom_file_path(file_path)
-    dcm2numpy.execute()
-    return dcm2numpy.get_output_numpy_array()
-
-
-def get_tag_pixels(file_path, shape):
-    tag2numpy = Tag2NumPy(shape)
-    tag2numpy.set_input_tag_file_path(file_path)
-    tag2numpy.execute()
-    return tag2numpy.get_output_numpy_array()
-
-
 def run():
 
     show_info()
@@ -153,8 +172,6 @@ def run():
         raise MyException('Root directory "{}" does not exist'.format(args.root_dir))
     if len(os.listdir(args.root_dir)) == 0:
         raise MyException('Root directory "{}" is empty'.format(args.root_dir))
-
-    os.makedirs(args.output_dir, exist_ok=False)
 
     # Verify that training, validation and test collections exist and are not empty
     if args.training is not None:
@@ -168,6 +185,8 @@ def run():
         check_collections(args.root_dir, args.split)
         if args.split_percentage is None:
             raise MyException('Argument --split_percentage is mandatory when choosing --split')
+
+    os.makedirs(args.output_dir, exist_ok=False)
 
     # Create training H5
     if args.training is not None:
