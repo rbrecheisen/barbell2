@@ -98,6 +98,7 @@ def split_file_list(file_list, percentage):
 def get_dcm_pixels(file_path):
     dcm2numpy = Dcm2Numpy()
     dcm2numpy.set_input_dicom_file_path(file_path)
+    dcm2numpy.set_normalize_enabled()
     dcm2numpy.execute()
     return dcm2numpy.get_output_numpy_array()
 
@@ -149,7 +150,7 @@ def create_h5_from_file_list(file_list, output_file_path):
             tag_pixels = get_tag_pixels(file_pair[1], dcm_pixels.shape)
             tag_pixels = update_labels(tag_pixels)
             labels = np.unique(tag_pixels)
-            if labels_ok(labels):
+            if not labels_ok(labels):
                 log('Labels not ok ({})'.format(labels))
                 continue
             label_counts = update_label_counts(label_counts, labels)

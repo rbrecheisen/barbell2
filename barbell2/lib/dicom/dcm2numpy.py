@@ -1,5 +1,7 @@
 import pydicom
 
+import numpy as np
+
 
 class Dcm2Numpy(object):
 
@@ -31,7 +33,7 @@ class Dcm2Numpy(object):
             b = p.RescaleIntercept
             m = p.RescaleSlope
             self._output_numpy_array = m * self._output_numpy_array + b
-            print('{}, {}'.format(np.min(self._output_numpy_array), np.max(self._output_numpy_array)))
+        # print('{}, {}'.format(np.min(self._output_numpy_array), np.max(self._output_numpy_array)))
 
 
 if __name__ == '__main__':
