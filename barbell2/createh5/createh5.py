@@ -123,11 +123,10 @@ def create_h5_from_file_list(file_list, output_file_path):
             tag_pixels = get_tag_pixels(file_pair[1], dcm_pixels.shape)
             tag_pixels = update_labels(tag_pixels)
             labels = np.unique(tag_pixels)
-            print(labels)
             group = h5f.create_group('{:04d}'.format(count))
             group.create_dataset('images', data=dcm_pixels)
             group.create_dataset('labels', data=tag_pixels)
-            print('{:04d} added images and labels for {}'.format(count, file_pair[0]))
+            print('{:04d} added images and labels ({}) for {}'.format(count, labels, file_pair[0]))
             count += 1
     print('Done')
 
@@ -221,16 +220,11 @@ def run():
     # Note: the args.split_percentage refers to the percentage of observations
     # assigned to the training set!
     if args.split is not None:
-        file_list = collect_files(
-            args.root_dir, args.split, args.width, args.height)
+        file_list = collect_files(args.root_dir, args.split, args.width, args.height)
         file_list = shuffle_file_list(file_list)
         training_files, validation_files = split_file_list(file_list, args.split_percentage)
-        create_h5_from_file_list(
-            training_files,
-            os.path.join(args.output_dir, args.output_file_name_training))
-        create_h5_from_file_list(
-            validation_files,
-            os.path.join(args.output_dir, args.output_file_name_validation))
+        create_h5_from_file_list(training_files, os.path.join(args.output_dir, args.output_file_name_training))
+        create_h5_from_file_list(validation_files, os.path.join(args.output_dir, args.output_file_name_validation))
 
 
 def main():

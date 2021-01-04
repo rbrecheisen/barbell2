@@ -8,9 +8,3 @@ python createh5.py \
     ${HOME}/Desktop/h5 \
     --split="FROGS, HEERLEN, MAASTRICHT_AKEN, NEWEPOC" \
     --split_percentage=0.8
-
-#python createh5.py \
-#    /Volumes/USB_SECURE1/data/radiomics/projects/deepseg/data/mega/final \
-#    ${HOME}/Desktop/h5 \
-#    --split="NEWEPOC" \
-#    --split_percentage=0.8
