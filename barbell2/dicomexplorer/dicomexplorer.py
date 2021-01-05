@@ -1,6 +1,7 @@
 import os
-import json
 import pydicom
+import argparse
+from cmd2 import with_argument_list
 from pydicom._dicom_dict import DicomDictionary
 from barbell2.lib import BasicShell
 
@@ -109,21 +110,28 @@ class DicomExplorerShell(BasicShell):
                     if tag_name in item:
                         self.poutput(output)
 
-    def do_find_tag(self, tag_name):
+    @with_argument_list()
+    def do_find_tag(self, arg_list):
         """
-        Usage: find_tag <tag name>
+        Usage: find_tag <tag name> [1|0]
         Find tag <tag name> in the currently loaded DICOM files.
         """
         files = self.result_manager.get_current_result_data()
+        tag_name = arg_list[0]
+        values = []
         for f in files:
             p = pydicom.read_file(f)
             for tag in p.keys():
                 if tag in list(DicomDictionary.keys()):
                     if tag_name == DicomDictionary[tag][4]:
-                        self.poutput('{}: {}'.format(f, p[tag].value))
+                        v = p[tag].value
+                        if v not in values:
+                            values.append(v)
+                        self.poutput('{}: {}'.format(tag_name, v))
                         break
                 else:
                     self.poutput('Warning: tag {} cannot be found in the DICOM dictionary'.format(tag))
+        self.poutput('Unique values: {}'.format(values))
 
     def do_show_header(self, file_name):
         """
@@ -160,7 +168,8 @@ class DicomExplorerShell(BasicShell):
         Usage: check_pixels [verbose]
         Check that each DICOM file contains pixel values that can be loaded using pydicom and NumPy. Sometimes,
         images may be compressed in some way (e.g., using JPEG2000). In that case, they cannot be loaded with
-        pydicom and their pixel values need to be extracted to raw format.
+        pydicom and their pixel values need to be extracted to raw format. You can use the dicomconverttoraw tool
+        for that purpose.
         """
         files = self.result_manager.get_current_result_data()
         count = 0
@@ -177,133 +186,6 @@ class DicomExplorerShell(BasicShell):
             self.poutput('Pixel data for {} out of {} files could not be loaded'.format(count, len(files)))
         else:
             self.poutput('Pixel data OK for all files')
-
-    def do_dump_scan_props2(self, output_file):
-        files = self.result_manager.get_current_result_data()
-        scan_props_tags = {
-            'manufacturer': (0x8, 0x70),
-            'model_name': (0x8, 0x1090),
-            'software_version': (0x18, 0x1020),
-            'exposure_time': (0x18, 0x1150),
-            'tube_current': (0x18, 0x1151),
-        }
-        scan_props = {}
-        for f in files:
-            p = pydicom.read_file(f)
-            for key in scan_props_tags.keys():
-                scan_props[key] = []
-                tag = scan_props_tags[key]
-                if tag in p:
-                    entry = str(p[tag].value)
-                    if entry not in scan_props:
-                        scan_props[key].append(entry)
-            self.poutput(f)
-        self.poutput(json.dumps(scan_props, indent=4))
-
-    def do_dump_scan_props(self, output_file):
-        """
-        Usage: dump_scan_props output_file
-        Dumps following scanning properties of each DICOM file:
-
-         - Manufacturer (0x8, 0x70)
-         - Manufacturer's Model Name (0x8, 0x1090)
-         - Software Version(s) (0x18, 0x1020)
-         - Exposure Time (0x18, 0x1150)
-         - X-Ray Tube Current (0x18, 0x1151)
-         - KVP (0x18, 0x60)
-         - Slice Thickness (0x18, 0x50)
-         - Pixel Spacing (0x28, 0x30)
-         - Convolution Kernel (0x18, 0x1210)
-         - Filter Type (0x18, 0x1160)
-         - Patient Position (0x18, 0x5100)
-         - Institution Name (0x8, 0x80)
-         - Requested Procedure Description (0x32, 0x1060)
-
-        The output is written to a CSV file for easy analysis.
-        """
-        files = self.result_manager.get_current_result_data()
-        rows = []
-        for file_path in files:
-
-            p = pydicom.read_file(file_path)
-
-            manufacturer = ''
-            manufacturer_tag = (0x8, 0x70)
-            if manufacturer_tag in p:
-                manufacturer = p[manufacturer_tag].value
-
-            model_name = ''
-            model_name_tag = (0x8, 0x1090)
-            if model_name_tag in p:
-                model_name = p[model_name_tag].value
-
-            software_version = ''
-            software_version_tag = (0x18, 0x1020)
-            if software_version_tag in p:
-                software_version = p[software_version_tag].value
-
-            exposure_time = ''
-            exposure_time_tag = (0x18, 0x1150)
-            if exposure_time_tag in p:
-                exposure_time = p[exposure_time_tag].value
-
-            tube_current = ''
-            tube_current_tag = (0x18, 0x1151)
-            if tube_current_tag in p:
-                tube_current = p[tube_current_tag].value
-
-            kvp = ''
-            kvp_tag = (0x18, 0x60)
-            if kvp_tag in p:
-                kvp = p[kvp_tag].value
-
-            slice_thickness = ''
-            slice_thickness_tag = (0x18, 0x50)
-            if slice_thickness_tag in p:
-                slice_thickness = p[slice_thickness_tag].value
-
-            pixel_spacing = ''
-            pixel_spacing_tag = (0x28, 0x30)
-            if pixel_spacing_tag in p:
-                pixel_spacing = p[pixel_spacing_tag].value
-
-            convolution_kernel = ''
-            convolution_kernel_tag = (0x18, 0x1210)
-            if convolution_kernel_tag in p:
-                convolution_kernel = p[convolution_kernel_tag].value
-
-            filter_type = ''
-            filter_type_tag = (0x18, 0x1160)
-            if filter_type_tag in p:
-                filter_type = p[filter_type_tag].value
-
-            patient_position = ''
-            patient_position_tag = (0x18, 0x5100)
-            if patient_position_tag in p:
-                patient_position = p[patient_position_tag].value
-
-            institute_name = get_institute_name(file_path)
-
-            requested_procedure = ''
-            requested_procedure_tag = (0x32, 0x1060)
-            if requested_procedure_tag in p:
-                requested_procedure = p[requested_procedure_tag].value
-
-            line = '{};{};{};{};{};{};{};{};{};{};{};{};{};{}'.format(
-                file_path, manufacturer, model_name, software_version, exposure_time, tube_current, kvp,
-                slice_thickness, pixel_spacing, convolution_kernel, filter_type, patient_position, institute_name,
-                requested_procedure)
-            rows.append(line)
-            self.poutput(line)
-
-        header = 'file_path;manufacturer;model_name;software_version;exposure_time;tube_current;kvp;slice_thickness;' \
-                 'pixel_spacing;convolution_kernel;filter_type;patient_position;institute_name;requested_procedure'
-        self.poutput('Writing scan properties to {}'.format(output_file))
-        with open(output_file, 'w') as f:
-            f.write(header + '\n')
-            for row in rows:
-                f.write(row + '\n')
-        self.poutput('Finished writing')
 
 
 def main():
