@@ -1,4 +1,5 @@
 import os
+import json
 import pydicom
 import argparse
 from cmd2 import with_argument_list
@@ -93,9 +94,9 @@ class DicomExplorerShell(BasicShell):
             count += 1
         self.poutput('Total nr. of files: {}'.format(len(files)))
 
-    def do_lookup(self, tag_name):
+    def do_lookup_tag(self, tag_name):
         """
-        Usage: lookup <tag name>
+        Usage: lookup_tag <tag name>
         Lookup tag <tag name> in the DICOM dictionary. You can specify only parts of a tag name, e.g.,
         "Transmit" will return multiple dictionary entries containing the word "Transmit" (like Transmit
         Coil Name). Being able to lookup tags comes in handy when you search for them in DICOM files.
@@ -110,27 +111,24 @@ class DicomExplorerShell(BasicShell):
                     if tag_name in item:
                         self.poutput(output)
 
-    @with_argument_list()
-    def do_find_tag(self, arg_list):
+    def do_show_tag(self, tag_name):
         """
-        Usage: find_tag <tag name> [1|0]
-        Find tag <tag name> in the currently loaded DICOM files.
+        Usage: show_tag <tag name>
+        Show values for tag <tag name> in the currently loaded DICOM files.
         """
         files = self.result_manager.get_current_result_data()
-        tag_name = arg_list[0]
-        values = []
+        values = {}
         for f in files:
             p = pydicom.read_file(f)
             for tag in p.keys():
                 if tag in list(DicomDictionary.keys()):
                     if tag_name == DicomDictionary[tag][4]:
                         v = p[tag].value
-                        if v not in values:
-                            values.append(v)
+                        if v not in values.keys():
+                            values[v] = 0
+                        values[v] += 1
                         self.poutput('{}: {}'.format(tag_name, v))
                         break
-                else:
-                    self.poutput('Warning: tag {} cannot be found in the DICOM dictionary'.format(tag))
         self.poutput('Unique values: {}'.format(values))
 
     def do_show_header(self, file_name):
