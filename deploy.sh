@@ -40,6 +40,10 @@ read message
 git add -A
 git commit -m "Saving version ${VERSION} before deploying to PyPI. ${message}"
 git push
+if [ "$?" == "1" ]; then
+    echo "Something went wrong with pushing to Git. Please revert back to previous VERSION"
+    exit 1
+fi
 python setup.py sdist bdist_wheel
 export TWINE_USERNAME=$(cat ${HOME}/pypiusername.txt)
 export TWINE_PASSWORD=$(cat ${HOME}/pypipassword.txt)

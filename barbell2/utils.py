@@ -1,8 +1,30 @@
 import os
+import unittest
 import datetime
+
+from types import SimpleNamespace
 
 
 class MyException(Exception):
+    pass
+
+
+class MyTestCase(unittest.TestCase):
+
+    def setup(self):
+        pass
+
+    def setUp(self):
+        self.setup()
+
+    def tear_down(self):
+        pass
+
+    def tearDown(self):
+        self.tear_down()
+
+
+class MyTestArguments(SimpleNamespace):
     pass
 
 
