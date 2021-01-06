@@ -6,18 +6,12 @@ import random
 
 import numpy as np
 
-from barbell2.lib import MyException
+from barbell2.utils import MyException, Logger
 from barbell2.lib.dicom import Dcm2Numpy, Tag2NumPy
 
 from sklearn.model_selection import train_test_split
 
 LOG = None
-
-
-def log(message):
-    global LOG
-    print(message)
-    LOG.write(str(message) + '\n')
 
 
 def info_requested(args):
@@ -26,9 +20,14 @@ def info_requested(args):
     return False
 
 
-def show_info():
-    log("""The createh5.py script allows you to create HDF5 files for training, validation and testing your
-    deep learning networks in Keras.""")
+def show_intro():
+    LOG.print("""
+    === CREATEH5 ===
+    Welcome to the createh5 tool of the Barbell2 package!
+    This tool allows you to create HDF5 files from collections of single DICOM images and associated TAG files that
+    contain segmentations of various regions of interest in the DICOM images. You can use the tool to create training,
+    validation and test sets for deep learning with the Keras framework.
+    """)
 
 
 def get_args():
@@ -56,7 +55,7 @@ def check_collections(root_dir, collections):
     for collection in collection_list:
         if not os.path.isdir(os.path.join(root_dir, collection)):
             raise MyException('Collection directory "{}" does not exist'.format(collection))
-    log('Done')
+    LOG.print('Done')
 
 
 def has_correct_dimensions(dcm_file, width, height):
@@ -69,7 +68,7 @@ def has_correct_dimensions(dcm_file, width, height):
 def collect_files(root_dir, collections, width, height):
     file_list = []
     collection_list = [x.strip() for x in collections.split(',')]
-    log(collection_list)
+    LOG.print(collection_list)
     for collection in collection_list:
         collection_dir = os.path.join(root_dir, collection)
         for root, dirs, files in os.walk(collection_dir):
@@ -81,7 +80,7 @@ def collect_files(root_dir, collections, width, height):
                         tag_file = os.path.join(root, f)[:-4] + '.tag'
                         if os.path.isfile(tag_file):
                             file_list.append([dcm_file, tag_file])
-                            log('Adding {} to collection'.format(dcm_file))
+                            LOG.print('Adding {} to collection'.format(dcm_file))
     return file_list
 
 
@@ -151,21 +150,19 @@ def create_h5_from_file_list(file_list, output_file_path):
             tag_pixels = update_labels(tag_pixels)
             labels = np.unique(tag_pixels)
             if not labels_ok(labels):
-                log('Labels not ok ({})'.format(labels))
+                LOG.print('Labels not ok ({})'.format(labels))
                 continue
             label_counts = update_label_counts(label_counts, labels)
             group = h5f.create_group('{:04d}'.format(count))
             group.create_dataset('images', data=dcm_pixels)
             group.create_dataset('labels', data=tag_pixels)
-            log('{:04d} added images and labels ({}) for {}'.format(count, labels, file_pair[0]))
+            LOG.print('{:04d} added images and labels ({}) for {}'.format(count, labels, file_pair[0]))
             count += 1
-    log('Done')
-    log('{}: {}'.format(output_file_path, label_counts))
+    LOG.print('Done')
+    LOG.print('{}: {}'.format(output_file_path, label_counts))
 
 
 def run(args):
-
-    show_info()
 
     # Verify that root folder exists and is not empty
     if not os.path.isdir(args.root_dir):
@@ -175,7 +172,7 @@ def run(args):
 
     # Verify that training, validation and test collections exist and are not empty
     if args.training is not None:
-        log('Checking collections training...')
+        LOG.print('Checking collections training...')
         check_collections(args.root_dir, args.training)
     if args.validation is not None:
         check_collections(args.root_dir, args.validation)
@@ -222,22 +219,22 @@ def run(args):
         file_list = collect_files(args.root_dir, args.split, args.width, args.height)
         file_list = shuffle_file_list(file_list)
         training_files, validation_files = split_file_list(file_list, args.split_percentage)
-        log('>>> Creating training.h5...')
+        LOG.print('>>> Creating training.h5...')
         create_h5_from_file_list(training_files, os.path.join(args.output_dir, args.output_file_name_training))
-        log('>>> Creating validation.h5...')
+        LOG.print('>>> Creating validation.h5...')
         create_h5_from_file_list(validation_files, os.path.join(args.output_dir, args.output_file_name_validation))
 
 
 def main():
-    args = get_args()
     global LOG
+    args = get_args()
     os.makedirs(args.output_dir, exist_ok=False)
-    LOG = open(os.path.join(args.output_dir, 'output.txt'), 'w')
+    LOG = Logger(args.output_dir)
+    show_intro()
     try:
         run(args)
     except MyException as e:
-        log(e)
-    LOG.close()
+        LOG.print(e)
 
 
 if __name__ == '__main__':
