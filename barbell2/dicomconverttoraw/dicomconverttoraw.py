@@ -2,7 +2,7 @@ import os
 import sys
 import argparse
 
-from barbell2.lib import MyException
+from barbell2.utils import MyException
 
 
 def get_args():
