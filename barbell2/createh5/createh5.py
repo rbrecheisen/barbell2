@@ -44,6 +44,7 @@ def get_args():
     parser.add_argument('--testing', help='Comma-separated list of collection names for validation')
     parser.add_argument('--split', help='Comma-separated list of collection names for a 80/20 split between training and validation')
     parser.add_argument('--split_percentage', type=float, help='Percentage to split on (default: .8)', default=0.8)
+    parser.add_argument('--log_dir', default='.', help='Path to logging directory')
     # https://stackoverflow.com/questions/8259001/python-argparse-command-line-flags-without-arguments
     # parser.add_argument('--info', help='Shows detailed help info', action='store_true')
     args = parser.parse_args()
@@ -107,6 +108,8 @@ def get_tag_pixels(file_path, shape):
     tag2numpy.set_input_tag_file_path(file_path)
     tag2numpy.execute()
     pixels = tag2numpy.get_output_numpy_array()
+    # Note that sometimes pixels = None because of failure to reshape the pixel array
+    # to the size of the DICOM image
     return pixels
 
 
@@ -147,10 +150,13 @@ def create_h5_from_file_list(file_list, output_file_path):
         for file_pair in file_list:
             dcm_pixels = get_dcm_pixels(file_pair[0])
             tag_pixels = get_tag_pixels(file_pair[1], dcm_pixels.shape)
+            if tag_pixels is None:
+                LOG.print('ERROR: Could not retrieve pixels from {}'.format(file_pair[1]))
+                continue
             tag_pixels = update_labels(tag_pixels)
             labels = np.unique(tag_pixels)
             if not labels_ok(labels):
-                LOG.print('Labels not ok ({})'.format(labels))
+                LOG.print('ERROR: Labels not ok ({})'.format(labels))
                 continue
             label_counts = update_label_counts(label_counts, labels)
             group = h5f.create_group('{:04d}'.format(count))

@@ -40,7 +40,10 @@ class Tag2NumPy(object):
 
     def execute(self):
         self._output_numpy_array = self._get_pixels(self._input_tag_file_path)
-        self._output_numpy_array = self._output_numpy_array.reshape(self._shape)
+        try:
+            self._output_numpy_array = self._output_numpy_array.reshape(self._shape)
+        except ValueError:
+            self._output_numpy_array = None
 
 
 if __name__ == '__main__':

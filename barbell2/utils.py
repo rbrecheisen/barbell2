@@ -42,7 +42,7 @@ class Logger(object):
 
     def print(self, message):
         now = datetime.datetime.now()
-        message = '[' + now.strftime('%Y-%m-%d %H:%M:%S.%f') + '] ' + message
+        message = '[' + now.strftime('%Y-%m-%d %H:%M:%S.%f') + '] ' + str(message)
         print(message)
         if self.f:
             self.f.write(message + '\n')
