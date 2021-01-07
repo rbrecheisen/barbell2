@@ -44,8 +44,8 @@ if [ "$?" == "1" ]; then
     echo "Something went wrong with pushing to Git. Please revert back to previous VERSION"
     exit 1
 fi
+rm -rf build dist
 python setup.py sdist bdist_wheel
 export TWINE_USERNAME=$(cat ${HOME}/pypiusername.txt)
 export TWINE_PASSWORD=$(cat ${HOME}/pypipassword.txt)
 twine upload dist/*
-
