@@ -14,6 +14,5 @@ cd ../barbell2/createh5
 python createh5.py \
     --output_file_name_testing=testing.h5 \
     --testing="TRAUMA" \
-    --log_dir=${HOME}/Desktop/h5 \
     /Volumes/USB_SECURE1/data/radiomics/projects/deepseg/data/mega/final \
     ${HOME}/Desktop/h5

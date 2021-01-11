@@ -6,5 +6,5 @@ __version__ = '0.1.0'
 
 from .castorclient import castorclient
 from .createh5 import createh5
-from .dicomconverttoraw import dicomconverttoraw
+from .dicomconverter import dicomconverter
 from .dicomexplorer import dicomexplorer
