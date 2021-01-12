@@ -147,7 +147,7 @@ def create_h5_from_file_list(file_list, output_file_path):
     with h5py.File(output_file_path, 'w') as h5f:
         count = 1
         for file_pair in file_list:
-            file_name = os.path.split(file_pair[0])[1]
+            file_name = os.path.split(file_pair[0])[1][:-4]
             dcm_pixels = get_dcm_pixels(file_pair[0])
             tag_pixels = get_tag_pixels(file_pair[1], dcm_pixels.shape)
             if tag_pixels is None:
@@ -159,11 +159,10 @@ def create_h5_from_file_list(file_list, output_file_path):
                 LOG.print('ERROR: Labels not ok ({})'.format(labels))
                 continue
             label_counts = update_label_counts(label_counts, labels)
-            # group = h5f.create_group('{:04d}'.format(count))
             group = h5f.create_group('{}'.format(file_name))
             group.create_dataset('images', data=dcm_pixels)
             group.create_dataset('labels', data=tag_pixels)
-            LOG.print('{:04d} added images and labels ({}) for {}'.format(count, labels, file_pair[0]))
+            LOG.print('{:04d} added images and labels ({}) for patient {}'.format(count, labels, file_name))
             count += 1
     LOG.print('Done')
     LOG.print('{}: {}'.format(output_file_path, label_counts))

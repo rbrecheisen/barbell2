@@ -1,3 +1,11 @@
+TODO
+
+castorclient
+
+createh5
+
+dicomconverttoraw
+
 dicomexplorer
 
 x add function check_pixels() that tries to load pixels using pydicom. if this fails an error is reported for that file
