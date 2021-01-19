@@ -9,8 +9,8 @@ if [ "$?" == "1" ]; then
   fi
   python -m pip install twine
 fi
-if [ ! -f "${HOME}/pypiusername.txt" ]; then
-  echo "Could not find ${HOME}/pypiusername.txt"
+if [ ! -f "${HOME}/pypiuser.txt" ]; then
+  echo "Could not find ${HOME}/pypiuser.txt"
   exit 0
 fi
 if [ ! -f "${HOME}/pypipassword.txt" ]; then
@@ -46,6 +46,6 @@ if [ "$?" == "1" ]; then
 fi
 rm -rf build dist
 python setup.py sdist bdist_wheel
-export TWINE_USERNAME=$(cat ${HOME}/pypiusername.txt)
+export TWINE_USERNAME=$(cat ${HOME}/pypiuser.txt)
 export TWINE_PASSWORD=$(cat ${HOME}/pypipassword.txt)
 twine upload dist/*
