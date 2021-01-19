@@ -1,133 +1,34 @@
 import os
-import cmd2
 import pydicom
 
 from pydicom._dicom_dict import DicomDictionary
+from barbell2.lib import BasicShell
 
 
-def is_dicom(file_path):
-    if not os.path.isfile(file_path):
-        return False
-    try:
-        with open(file_path, "rb") as f:
-            return f.read(132).decode("ASCII")[-4:] == "DICM"
-    except UnicodeDecodeError:
-        return False
-
-
-class DicomExplorer(cmd2.Cmd):
+class DicomExplorer(BasicShell):
 
     def __init__(self):
         super(DicomExplorer, self).__init__()
-        self.debug = True
         self.intro = 'Welcome to DICOM Explorer 2!'
-        self.current_dir = os.path.abspath(os.path.curdir)
-        self.idx = -1
-        self.results = {}
-        self.current_key = None
-        self.last_idx = self.idx
+        self.prompt = '(dicom) '
 
     ###
 
-    def next_idx(self):
-        self.idx += 1
-        self.last_idx = self.idx
-        return self.idx
-
-    def add_result(self, data, desc=None):
-        key = 'result_{}'.format(self.next_idx())
-        self.results[key] = {'data': data, 'desc': desc}
-        self.current_key = key
+    @staticmethod
+    def is_dicom(file_path):
+        if not os.path.isfile(file_path):
+            return False
+        try:
+            with open(file_path, "rb") as f:
+                return f.read(132).decode("ASCII")[-4:] == "DICM"
+        except UnicodeDecodeError:
+            return False
 
     @staticmethod
     def tag_for_name(name):
         for key, value in DicomDictionary.items():
             if name == value[4]:
                 return hex(int(key))
-
-    ###
-
-    def do_show_results(self, _):
-        for k in self.results.keys():
-            current = ''
-            if k == self.current_key:
-                current = '** current **'
-            self.poutput('{}: {} {}'.format(k, self.results[k]['desc'], current))
-
-    def do_set_result_data(self, line):
-        items = [x.strip() for x in line.split('=')]
-        self.results[items[0]]['data'] = items[1]
-
-    def do_set_result_desc(self, line):
-        items = [x.strip() for x in line.split('=')]
-        self.results[items[0]]['desc'] = items[1]
-
-    def do_set_current_key(self, key):
-        self.current_key = key
-
-    ###
-
-    def do_cd(self, line):
-        """ Usage: cd <dir path>
-        Change the current directory to <dir path>
-        """
-        if line == '.' or line == '':
-            self.do_pwd(None)
-            return
-        if line == '..':
-            self.current_dir = os.path.split(self.current_dir)[0]
-            self.do_pwd(None)
-            return
-        if not os.path.isdir(line):
-            line = os.path.join(self.current_dir, line)
-            if not os.path.isdir(line):
-                self.poutput('Directory {} is not a valid directory'.format(line))
-                return
-        self.current_dir = line
-        self.do_pwd(None)
-
-    def do_ls(self, _):
-        """ Usage: ls
-        Lists the contents of the current directory. Same as shell command "!ls -lap".
-        """
-        self.do_shell('cd {}; ls -lap'.format(self.current_dir))
-
-    def do_shell(self, line):
-        """ Usage: !<command>
-        Execute shell command <command>. For example, !echo $HOME will display the user's HOME directory.
-        """
-        if line is None or line is '':
-            self.poutput('Please specify a shell command preceded by! For example, !echo $HOME')
-        else:
-            self.poutput('Running shell command: {}'.format(line))
-            output = os.popen(line).read()
-            self.poutput(output)
-
-    def do_pwd(self, _):
-        """ Usage: pwd
-        Show the current directory.
-        """
-        self.poutput(self.current_dir)
-
-    def do_undo(self, _):
-        """ Usage: undo
-        Move to the previous result set (if any).
-        """
-        idx = int(self.current_key.split('_')[1]) - 1
-        idx = 0 if idx < 0 else idx
-        self.idx = idx
-        self.current_key = 'result_{}'.format(self.idx)
-        self.do_show_results(None)
-
-    def do_redo(self, _):
-        """ Usage: redo
-        Move to the next result set (if any).
-        """
-        idx = int(self.current_key.split('_')[1]) + 1
-        idx = self.last_idx if idx > self.last_idx else idx
-        self.idx = idx
-        self.current_key = 'result_{}'.format(self.idx)
-        self.do_show_results(None)
 
     ###
 
@@ -138,7 +39,7 @@ class DicomExplorer(cmd2.Cmd):
         """
         if not os.path.isfile(file_path):
             file_path = os.path.join(self.current_dir, file_path)
-        if not is_dicom(file_path):
+        if not self.is_dicom(file_path):
             self.poutput('File is not DICOM')
             return
         self.poutput('Loading file...')
@@ -158,7 +59,7 @@ class DicomExplorer(cmd2.Cmd):
             for f in files:
                 if not f.startswith('._'):
                     f = os.path.join(root, f)
-                    if is_dicom(f):
+                    if self.is_dicom(f):
                         data.append(f)
                         self.poutput(f)
         self.add_result(data, desc='Files ({})'.format(len(data)))

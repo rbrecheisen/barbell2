@@ -1,95 +1,55 @@
 import os
 import cmd2
-import numpy as np
-
-
-class Result(object):
-
-    def __init__(self, data, name):
-        self.data = data
-        self.name = name
-        self.description = None
-
-
-class ResultManager(object):
-
-    def __init__(self):
-        self.results = {}
-        self.current_result = None
-        self.result_idx = -1
-
-    def next_result_idx(self):
-        self.result_idx += 1
-        return self.result_idx
-
-    def add_result_data(self, data):
-        name = 'result_{}'.format(self.next_result_idx())
-        result = Result(data, name)
-        self.results[name] = result
-        self.current_result = self.results[name]
-
-    def remove_result_data(self, name):
-        self.current_result = self.results['result_0']
-        del self.results[name]
-
-    def get_current_result_data(self):
-        return self.current_result.data
-
-    def set_current_result(self, name):
-        self.current_result = self.results[name]
-
-    def set_result_description(self, name, description):
-        self.results[name].description = description
-
-    def undo(self):
-        name = self.current_result.name
-        index = int(name.split('_')[1])
-        index = np.minimum(0, index-1)
-        name = 'result_{}'.format(index)
-        self.current_result = self.results[name]
-
-    def redo(self):
-        name = self.current_result.name
-        index = int(name.split('_')[1])
-        index = np.maximum(index+1, len(self.results.keys()))
-        name = 'result_{}'.format(index)
-        self.current_result = self.results[name]
-
-    def show_results(self):
-        current = ''
-        for result in self.results.values():
-            if result.name == self.current_result.name:
-                current = '[current]'
-            print('{}: description = {} {}'.format(result.name, result.description, current))
 
 
 class BasicShell(cmd2.Cmd):
 
     def __init__(self):
         super(BasicShell, self).__init__()
-        self.result_manager = ResultManager()
-        self.current_dir = os.path.abspath(os.path.curdir)
-        self.intro = 'Put your intro inside a global variable INTRO'
+        self.debug = True
+        self.intro = 'Welcome to this basic shell!'
         self.prompt = '(shell) '
+        self.current_dir = os.path.abspath(os.path.curdir)
+        self.idx = -1
+        self.results = {}
+        self.current_key = None
+        self.last_idx = self.idx
 
-    def add_result(self, data):
-        """
-        Usage: add_result <data>
-        Add <data> as a new result set to the result manager.
-        """
-        self.result_manager.add_result_data(data)
+    def next_idx(self):
+        self.idx += 1
+        self.last_idx = self.idx
+        return self.idx
 
-    def remove_result(self, name):
-        """
-        Usage: remove_result <result name>
-        Remove result <name> from list of result sets.
-        """
-        self.result_manager.remove_result_data(name)
+    def add_result(self, data, desc=None):
+        key = 'result_{}'.format(self.next_idx())
+        self.results[key] = {'data': data, 'desc': desc}
+        self.current_key = key
+
+    ###
+
+    def do_show_results(self, _):
+        for k in self.results.keys():
+            current = ''
+            if k == self.current_key:
+                current = '** current **'
+            self.poutput('{}: {} {}'.format(k, self.results[k]['desc'], current))
+
+    def do_set_result_data(self, line):
+        items = [x.strip() for x in line.split('=')]
+        self.results[items[0]]['data'] = items[1]
+
+    def do_set_result_desc(self, line):
+        items = [x.strip() for x in line.split('=')]
+        self.results[items[0]]['desc'] = items[1]
+
+    def do_set_current_key(self, key):
+        self.current_key = key
+
+    ###
 
     def do_cd(self, line):
-        """
-        Usage: cd <dir path>
-        Change the current directory to <dir path>.
+        """ Usage: cd <dir path>
+        Change the current directory to <dir path>
         """
         if line == '.' or line == '':
             self.do_pwd(None)
@@ -107,22 +67,13 @@ class BasicShell(cmd2.Cmd):
         self.do_pwd(None)
 
     def do_ls(self, _):
-        """
-        Usage: ls
+        """ Usage: ls
         Lists the contents of the current directory. Same as shell command "!ls -lap".
         """
         self.do_shell('cd {}; ls -lap'.format(self.current_dir))
 
-    def do_pwd(self, _):
-        """
-        Usage: pwd
-        Show the current directory.
-        """
-        self.poutput(self.current_dir)
-
     def do_shell(self, line):
-        """
-        Usage: !<command>
+        """ Usage: !<command>
         Execute shell command <command>. For example, !echo $HOME will display the user's HOME directory.
         """
         if line is None or line is '':
@@ -132,40 +83,35 @@ class BasicShell(cmd2.Cmd):
             output = os.popen(line).read()
             self.poutput(output)
 
-    def do_show_results(self, _):
+    def do_pwd(self, _):
+        """ Usage: pwd
+        Show the current directory.
         """
-        Usage: show_results
-        Shows all result sets currently available.
-        """
-        self.result_manager.show_results()
-
-    def do_set_result_desc(self, line):
-        """
-        Usage: set_result_desc <name=description>
-        Set description of result set <name> to <description>.
-        """
-        items = [x.strip() for x in line.split('=')]
-        name, description = items[0], items[1]
-        self.result_manager.set_result_description(name, description)
+        self.poutput(self.current_dir)
 
     def do_undo(self, _):
+        """ Usage: undo
+        Move to the previous result set (if any).
         """
-        Usage: undo
-        Sets current result set to previous result set.
-        """
-        self.result_manager.undo()
+        idx = int(self.current_key.split('_')[1]) - 1
+        idx = 0 if idx < 0 else idx
+        self.idx = idx
+        self.current_key = 'result_{}'.format(self.idx)
+        self.do_show_results(None)
 
     def do_redo(self, _):
+        """ Usage: redo
+        Move to the next result set (if any).
         """
-        Usage: redo
-        Sets current result set to next result set.
-        """
-        self.result_manager.redo()
+        idx = int(self.current_key.split('_')[1]) + 1
+        idx = self.last_idx if idx > self.last_idx else idx
+        self.idx = idx
+        self.current_key = 'result_{}'.format(self.idx)
+        self.do_show_results(None)
 
     @staticmethod
     def do_exit(_):
-        """
-        Usage: exit
+        """ Usage: exit
         Quits the shell application (same as quit).
         """
         return True
