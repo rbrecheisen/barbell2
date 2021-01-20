@@ -4,5 +4,5 @@ __author__ = """Ralph Brecheisen"""
 __email__ = 'ralph.brecheisen@gmail.com'
 __version__ = '0.1.0'
 
-from .createh5 import createh5
-from .dicomexplorer import dicomexplorer
+from .dicomexplorer.dicomexplorer import DicomExplorer
+from .castorexportclient.castorexportclient import CastorExportClient
