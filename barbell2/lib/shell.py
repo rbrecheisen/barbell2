@@ -2,13 +2,23 @@ import os
 import cmd2
 
 
+INTRO = """
+Welcome to BasicShell!
+======================
+Please extend this class to create your own interactive shell applications.
+Type 'help' to view the commands available in BasicShell.
+"""
+
+PROMPT = '(shell) '
+
+
 class BasicShell(cmd2.Cmd):
 
     def __init__(self):
         super(BasicShell, self).__init__()
         self.debug = True
-        self.intro = 'Welcome to this basic shell!'
-        self.prompt = '(shell) '
+        self.intro = INTRO
+        self.prompt = PROMPT
         self.current_dir = os.path.abspath(os.path.curdir)
         self.idx = -1
         self.results = {}
@@ -115,3 +125,13 @@ class BasicShell(cmd2.Cmd):
         Quits the shell application (same as quit).
         """
         return True
+
+
+def main():
+    import sys
+    shell = BasicShell()
+    sys.exit(shell.cmdloop())
+
+
+if __name__ == '__main__':
+    main()
