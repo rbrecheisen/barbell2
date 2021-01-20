@@ -37,7 +37,7 @@ class BasicShell(cmd2.Cmd):
 
     ###
 
-    def do_show_results(self, _):
+    def do_show_results(self, _=None):
         for k in self.results.keys():
             current = ''
             if k == self.current_key:
@@ -76,7 +76,7 @@ class BasicShell(cmd2.Cmd):
         self.current_dir = line
         self.do_pwd(None)
 
-    def do_ls(self, _):
+    def do_ls(self, _=None):
         """ Usage: ls
         Lists the contents of the current directory. Same as shell command "!ls -lap".
         """
@@ -93,13 +93,13 @@ class BasicShell(cmd2.Cmd):
             output = os.popen(line).read()
             self.poutput(output)
 
-    def do_pwd(self, _):
+    def do_pwd(self, _=None):
         """ Usage: pwd
         Show the current directory.
         """
         self.poutput(self.current_dir)
 
-    def do_undo(self, _):
+    def do_undo(self, verbose=None):
         """ Usage: undo
         Move to the previous result set (if any).
         """
@@ -107,9 +107,10 @@ class BasicShell(cmd2.Cmd):
         idx = 0 if idx < 0 else idx
         self.idx = idx
         self.current_key = 'result_{}'.format(self.idx)
-        self.do_show_results(None)
+        if verbose:
+            self.do_show_results(None)
 
-    def do_redo(self, _):
+    def do_redo(self, verbose=None):
         """ Usage: redo
         Move to the next result set (if any).
         """
@@ -117,10 +118,11 @@ class BasicShell(cmd2.Cmd):
         idx = self.last_idx if idx > self.last_idx else idx
         self.idx = idx
         self.current_key = 'result_{}'.format(self.idx)
-        self.do_show_results(None)
+        if verbose:
+            self.do_show_results(None)
 
     @staticmethod
-    def do_exit(_):
+    def do_exit(_=None):
         """ Usage: exit
         Quits the shell application (same as quit).
         """
