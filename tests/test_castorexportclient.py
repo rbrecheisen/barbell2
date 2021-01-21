@@ -35,5 +35,7 @@ def test_find_option_values(client):
         (9, 'Unknown')
     ]
 
-def test_info(client):
-    client.info()
+def test_find_variable(client):
+    definitions = client.find_variable('adjuvant')
+    for d in definitions:
+        print(d)

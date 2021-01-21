@@ -3,22 +3,6 @@ import pandas as pd
 import numpy as np
 
 
-ATTRIBUTES = [
-    ('params', 'Contains dictionary of (global) parameters'),
-    ('data', 'Data frame containing exported data'),
-    ('data_dict', 'Dictionary containing exported data dictionary'),
-    ('data_options', 'Dictionary containing exported option groups and option items'),
-]
-
-METHODS = [
-    ('info', 'Shows list of attributes and implemented methods'),
-    ('remove_spaces', 'Replaces spaces with underscores'),
-    ('to_pandas', 'Maps Castor field types to Pandas data types'),
-    ('load_data', 'Loads Castor export file'),
-    ('find_option_values', 'Finds option groups containing a given option name'),
-]
-
-
 class CastorExportClient:
 
     def __init__(self, show_params=True):
@@ -62,28 +46,6 @@ class CastorExportClient:
         self.data = None
         self.data_dict = {}
         self.data_options = {}
-
-    @staticmethod
-    def info():
-        max_size = 0
-        attributes = []
-        for attribute in ATTRIBUTES:
-            if len(attribute[0]) > max_size:
-                max_size = len(attribute[0])
-            attributes.append(attribute)
-        methods = []
-        for method in METHODS:
-            if len(method[0]) > max_size:
-                max_size = len(method[0])
-                methods.append(method)
-        print()
-        print('ATTRIBUTES:')
-        for attribute in ATTRIBUTES:
-            print('{}:{}{}'.format(attribute[0], ' ' * (max_size - len(attribute[0]) + 2), attribute[1]))
-        print()
-        print('METHODS:')
-        for method in METHODS:
-            print('{}:{}{}'.format(method[0], ' ' * (max_size - len(method[0]) + 2), method[1]))
 
     @staticmethod
     def remove_spaces(value):
@@ -204,6 +166,22 @@ class CastorExportClient:
                 if option_name.lower() in option[1].lower():
                     option_values[option_group] = options
         return option_values
+
+    def find_variable(self, text):
+        """
+        Finds variable definitions that contain <text> in either the name or label.
+        :param text: (Part of) variable name or label
+        :return: List of variable definitions
+        """
+        definitions = []
+        for name, definition in self.data_dict.items():
+            # TODO: there's a field "remark" that has a label but no name, so it's None. Remove it from dd
+            try:
+                if text in name:
+                    definitions.append((name, definition))
+            except TypeError:
+                print()
+        return definitions
 
 
 if __name__ == '__main__':
