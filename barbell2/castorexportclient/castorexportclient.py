@@ -32,6 +32,11 @@ MISSING_VALUES_DATETIME64 = []
 EXTRA_COLUMNS = ['Record_Id', 'Institute_Abbreviation', 'Record_Creation_Date']
 
 
+# TODO: Refactor globals out of code to params.json
+# TODO: Refactor load_export to loader class
+# TODO: Make methods compatible with cmd2 package
+# TODO: Figure out multiple args cmd2
+
 class CastorExportClient:
 
     def __init__(self):
