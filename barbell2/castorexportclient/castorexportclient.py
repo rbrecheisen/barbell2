@@ -1,111 +1,120 @@
+import json
 import pandas as pd
 import numpy as np
 
 
-SHEET_NAME_STUDY_RESULTS = 'Study results'
-SHEET_NAME_STUDY_VARS = 'Study variable list'
-SHEET_NAME_STUDY_OPTS = 'Field options'
-
-DATA_DICT_VARIABLE_NAME = 'Variable_name'
-DATA_DICT_FIELD_TYPE = 'Field_type'
-DATA_DICT_FIELD_LABEL = 'Field_label'
-DATA_DICT_OPTION_GROUP_NAME = 'Optiongroup_name'
-
-OPTIONS_OPTION_GROUP_NAME = 'Option_group_name'
-OPTIONS_OPTION_NAME = 'Option_name'
-OPTIONS_OPTION_VALUE = 'Option_value'
-
-FIELD_TO_PANDAS_TYPES = {
-    'dropdown': 'category',
-    'string': 'object',
-    'radio': 'category',
-    'date': 'datetime64[ns]',
-    'year': 'Int64',
-    'textarea': 'object',
-    'numeric': 'float64',
-    'remark': 'object',
-}
-
-MISSING_VALUES_FLOAT64 = [999, 9999, 999.0, 9999.0]
-MISSING_VALUES_DATETIME64 = []
-
-EXTRA_COLUMNS = ['Record_Id', 'Institute_Abbreviation', 'Record_Creation_Date']
-
-
-# TODO: Refactor globals out of code to params.json
-# TODO: Refactor load_export to loader class
-# TODO: Make methods compatible with cmd2 package
-# TODO: Figure out multiple args cmd2
-
 class CastorExportClient:
 
     def __init__(self):
-        self.export = None
-        self.data_dict = {}
-        self.options = {}
 
-    def load_export(self,
-                    file_path,
-                    study_results=SHEET_NAME_STUDY_RESULTS,
-                    study_vars=SHEET_NAME_STUDY_VARS,
-                    study_opts=SHEET_NAME_STUDY_OPTS
-                    ):
+        self.params = {
+            'sheet_name_data': 'Study results',             # with spaces
+            'sheet_name_data_dict': 'Study variable list',  # ''
+            'sheet_name_data_opts': 'Field options',        # ''
+            'data_dict_var_name': 'Variable_name',          # without spaces because column names are updated
+            'data_dict_field_type': 'Field_type',           # ''
+            'data_dict_field_label': 'Field_label',         # ''
+            'data_dict_group_name': 'Optiongroup_name',     # ''
+            'data_opts_group_name': 'Option_group_name',    # ''
+            'data_opts_opt_name': 'Option_name',            # ''
+            'data_opts_opt_val': 'Option_value',            # ''
+            'data_cols_ignore': [
+                'Record_Id',                                # without spaces because column names are updated
+                'Institute_Abbreviation',                   # ''
+                'Record_Creation_Date',                     # ''
+            ],
+            'data_miss_float': [999, 9999, 99999, 999.0, 9999.0],
+            'data_miss_date': ['09-09-1809'],
+            'to_pandas': {
+                'dropdown': 'category',
+                'radio': 'category',
+                'string': 'object',
+                'textarea': 'object',
+                'remark': 'object',
+                'date': 'datetime64[ns]',
+                'year': 'Int64',
+                'numeric': 'float64',
+            }
+        }
 
-        def rename_col(col):
-            return col.replace(' ', '_')
+        print(json.dumps(self.params, indent=4))
 
-        def pandas_type(field_type):
-            if field_type in list(FIELD_TO_PANDAS_TYPES.keys()):
-                return FIELD_TO_PANDAS_TYPES[field_type]
-            return None
+    @staticmethod
+    def remove_spaces(value):
+        return value.replace(' ', '_')
 
-        # Load data dictionary as Python dict
-        data_dict = pd.read_excel(file_path, sheet_name=study_vars, dtype='object')
-        data_dict.columns = map(rename_col, data_dict.columns)
+    def load_data(self, file_path):
+
+        # Load data dictionary first and remove spaces from columns
+        data_dict = pd.read_excel(file_path, sheet_name=self.params['sheet_name_data_dict'], dtype='object')
+        data_dict.columns = map(self.remove_spaces, data_dict.columns)
+
+        # Fill missing values with np.nan
         for column in data_dict.columns:
             data_dict[column] = data_dict[column].fillna(np.nan)
-        for column in EXTRA_COLUMNS:
-            self.data_dict[column] = {
+
+        # Add columns to ignore to data dictionary
+        for column in self.params['data_cols_ignore']:
+            data_dict[column] = {
                 'field_label': '',
                 'field_type': 'string',
                 'pandas_type': str,
                 'option_group': None,
             }
+
+        # Store field definitions in data dictionary
         for idx, row in data_dict.iterrows():
-            var_name = row[DATA_DICT_VARIABLE_NAME]
+            var_name = row[self.params['data_dict_var_name']]
             if var_name != '':
-                self.data_dict[var_name] = {
-                    'field_label': row[DATA_DICT_FIELD_LABEL],
-                    'field_type': row[DATA_DICT_FIELD_TYPE],
-                    'pandas_type': pandas_type(row[DATA_DICT_FIELD_TYPE]),
-                    'option_group': row[DATA_DICT_OPTION_GROUP_NAME],
+                data_dict[var_name] = {
+                    'field_label': row[self.params['data_dict_field_label']],
+                    'field_type': row[self.params['data_dict_field_type']],
+                    'pandas_type': self.params['to_pandas'][row[self.params['data_dict_field_type']]],
+                    'option_group': row[self.params['data_dict_group_name']],
                 }
 
-        # Load data as Pandas data frame and set column type according to data dictionary
-        self.export = pd.read_excel(file_path, sheet_name=study_results)
-        self.export.columns = map(rename_col, self.export.columns)
-        for column in self.export.columns:
-            pt = pandas_type(self.data_dict[column]['field_type'])
-            self.export[column] = self.export[column].fillna(np.nan)
-            self.export[column] = pd.Series(data=self.export[column], dtype=pt)
-            series = self.export[column]
-            if pt == 'float64':
-                for mv in MISSING_VALUES_FLOAT64:
+        # Load data and remove spaces from columns
+        data = pd.read_excel(file_path, sheet_name=self.params['sheet_name_data'])
+        data.columns = map(self.remove_spaces, data.columns)
+
+        for column in data.columns:
+
+            # Convert column type to Pandas type
+            pandas_type = self.params['to_pandas'][data_dict[column]['field_type']]
+            data[column] = data[column].fillna(np.nan)
+            data[column] = pd.Series(data=data[column], dtype=pandas_type)
+            series = data[column]
+
+            # Missing values for floats en dates are specific to Castor data. Let's
+            # replace these with either np.nan or pd.NaT
+            if pandas_type == 'float64':
+                for mv in self.params['data_miss_float']:
                     series[series == mv] = np.nan
-            elif pt == 'datetime64[ns]':
-                for mv in MISSING_VALUES_DATETIME64:
+            elif pandas_type == 'datetime64[ns]':
+                for mv in self.params['data_miss_date']:
                     series[series == mv] = pd.NaT
+            else:
+                pass
 
-        # Load options as Python dict
-        options = pd.read_excel(file_path, sheet_name=study_opts, dtype='object')
-        options.columns = map(rename_col, options.columns)
-        for column in options.columns:
-            options[column] = options[column].fillna(np.nan)
-        for idx, row in options.iterrows():
-            option_group = row[OPTIONS_OPTION_GROUP_NAME]
-            if option_group not in list(self.options.keys()):
-                self.options[option_group] = []
-            self.options[option_group].append((int(row[OPTIONS_OPTION_VALUE]), row[OPTIONS_OPTION_NAME]))
+        # Load options and remove spaces from columns
+        data_opts = pd.read_excel(file_path, sheet_name=self.params['sheet_name_data_opts'], dtype='object')
+        data_opts.columns = map(self.remove_spaces, data_opts.columns)
 
-    def save(self, output_file):
-        self.export.to_csv(output_file, index=False)
+        # Fill in missing values
+        for column in data_opts.columns:
+            data_opts[column] = data_opts[column].fillna(np.nan)
+
+        for idx, row in data_opts.iterrows():
+
+            # Store options in option dictionary
+            option_group = row[self.params['data_opts_group_name']]
+            if option_group not in list(data_opts.keys()):
+                data_opts[option_group] = []
+            data_opts[option_group].append(
+                (int(row[self.params['data_opts_opt_val']]), row[self.params['data_opts_opt_name']]))
+
+        return data, data_dict, data_opts
+
+
+if __name__ == '__main__':
+    CastorExportClient2()
