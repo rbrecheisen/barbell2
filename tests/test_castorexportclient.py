@@ -35,3 +35,9 @@ def test_find_option_group_from_option_name(client):
         (7, 'Other'),
         (9, 'Unknown')
     ]
+
+
+def test_query(client):
+    data = client.data
+    result = data.query('dpca_geslacht')
+    print(result)

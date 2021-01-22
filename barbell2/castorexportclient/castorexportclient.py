@@ -162,7 +162,6 @@ class CastorExportClient:
         """
         Finds option groups and corresponding option values for the given option name.
         :param text: (Part of) option name or group name (default='' returns all options groups)
-        :return: Dictionary of option groups with a list of option name/value pairs as key
         """
         option_groups = {}
         for option_group, options in self.data_options.items():
@@ -177,14 +176,12 @@ class CastorExportClient:
             for option in options:
                 print('  {}'.format(option))
             print(']')
-        return option_groups
 
     def find_variable(self, text=''):
         """
         Finds variable definitions that contain <text> in either the name or label. Info returned
         contains: CRF name, field label, field type, Pandas type and option group name (if applicable).
         :param text: (Part of) variable name or label (default='' returns all variable definitions)
-        :return: List of variable definitions
         """
         definitions = []
         for name, definition in self.data_dict.items():
@@ -192,7 +189,16 @@ class CastorExportClient:
                 definitions.append((name, definition))
         for d in definitions:
             print('{}: {}'.format(d[0], json.dumps(d[1], indent=4)))
-        return definitions
+
+    def find_missing(self, in_column, show_columns):
+        """
+        Finds records with missing values in column <in_column>. Each record is displayed as indicated
+        by <show_columns>
+        :param in_column: Column that is searched for missing values.
+        :param show_columns: List of column names to show when displaying records with missing values.
+        :return:
+        """
+        pass
 
 
 if __name__ == '__main__':
