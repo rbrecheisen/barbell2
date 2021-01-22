@@ -35,13 +35,3 @@ def test_find_option_group_from_option_name(client):
         (7, 'Other'),
         (9, 'Unknown')
     ]
-
-
-def test_find_option_group_from_group_name(client):
-    client.find_option_group('adjuvant')
-
-
-def test_find_variable(client):
-    definitions = client.find_variable('adjuvant')
-    for d in definitions:
-        print('{}: {}'.format(d[0], json.dumps(d[1], indent=4)))

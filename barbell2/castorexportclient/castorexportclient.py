@@ -14,7 +14,8 @@ class CastorExportClient:
             'sheet_name_data': 'Study results',                 # with spaces
             'sheet_name_data_dict': 'Study variable list',      # ''
             'sheet_name_data_options': 'Field options',         # ''
-            'data_dict_var_name': 'Variable_name',              # without spaces because column names are updated
+            'data_dict_crf_name': 'Step_name',                  # without spaces because column names are updated
+            'data_dict_var_name': 'Variable_name',              # ''
             'data_dict_field_type': 'Field_type',               # ''
             'data_dict_field_label': 'Field_label',             # ''
             'data_dict_option_group_name': 'Optiongroup_name',  # ''
@@ -85,6 +86,7 @@ class CastorExportClient:
         # Add columns to ignore to data dictionary
         for column in self.params['data_cols_ignore']:
             data_dict[column] = {
+                'crf_name': '',
                 'field_label': column,
                 'field_type': 'string',
                 'pandas_type': 'object',
@@ -97,6 +99,7 @@ class CastorExportClient:
             if var_name is None or var_name == '' or pd.isna(var_name):
                 continue
             data_dict[var_name] = {
+                'crf_name': row[self.params['data_dict_crf_name']],
                 'field_label': row[self.params['data_dict_field_label']],
                 'field_type': row[self.params['data_dict_field_type']],
                 'pandas_type': self.to_pandas_type(row[self.params['data_dict_field_type']]),
@@ -155,10 +158,10 @@ class CastorExportClient:
 
         return self.data, self.data_dict, self.data_options
 
-    def find_option_group(self, text):
+    def find_option_group(self, text=''):
         """
         Finds option groups and corresponding option values for the given option name.
-        :param text: (Part of) option name or group name
+        :param text: (Part of) option name or group name (default='' returns all options groups)
         :return: Dictionary of option groups with a list of option name/value pairs as key
         """
         option_groups = {}
@@ -176,10 +179,11 @@ class CastorExportClient:
             print(']')
         return option_groups
 
-    def find_variable(self, text):
+    def find_variable(self, text=''):
         """
-        Finds variable definitions that contain <text> in either the name or label.
-        :param text: (Part of) variable name or label
+        Finds variable definitions that contain <text> in either the name or label. Info returned
+        contains: CRF name, field label, field type, Pandas type and option group name (if applicable).
+        :param text: (Part of) variable name or label (default='' returns all variable definitions)
         :return: List of variable definitions
         """
         definitions = []
