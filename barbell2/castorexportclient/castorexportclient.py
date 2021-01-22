@@ -56,7 +56,7 @@ class CastorExportClient:
         """
         return value.replace(' ', '_')
 
-    def to_pandas(self, field_type):
+    def to_pandas_type(self, field_type):
         """
         Lookup Pandas data type for given Castor field type.
         :param field_type: Castor field type name
@@ -94,13 +94,14 @@ class CastorExportClient:
         # Store field definitions in data dictionary
         for idx, row in df_data_dict.iterrows():
             var_name = row[self.params['data_dict_var_name']]
-            if var_name != '':
-                data_dict[var_name] = {
-                    'field_label': row[self.params['data_dict_field_label']],
-                    'field_type': row[self.params['data_dict_field_type']],
-                    'pandas_type': self.to_pandas(row[self.params['data_dict_field_type']]),
-                    'option_group_name': row[self.params['data_dict_option_group_name']],
-                }
+            if var_name is None or var_name == '' or pd.isna(var_name):
+                continue
+            data_dict[var_name] = {
+                'field_label': row[self.params['data_dict_field_label']],
+                'field_type': row[self.params['data_dict_field_type']],
+                'pandas_type': self.to_pandas_type(row[self.params['data_dict_field_type']]),
+                'option_group_name': row[self.params['data_dict_option_group_name']],
+            }
 
         self.data_dict = data_dict
 
@@ -114,7 +115,7 @@ class CastorExportClient:
                 continue
 
             # Convert column type to Pandas type
-            pandas_type = self.to_pandas(self.data_dict[column]['field_type'])
+            pandas_type = self.to_pandas_type(self.data_dict[column]['field_type'])
             df_data[column] = df_data[column].fillna(np.nan)
             df_data[column] = pd.Series(data=df_data[column], dtype=pandas_type)
 
@@ -154,18 +155,26 @@ class CastorExportClient:
 
         return self.data, self.data_dict, self.data_options
 
-    def find_option_values(self, option_name):
+    def find_option_group(self, text):
         """
         Finds option groups and corresponding option values for the given option name.
-        :param option_name: Option name
+        :param text: (Part of) option name or group name
         :return: Dictionary of option groups with a list of option name/value pairs as key
         """
-        option_values = {}
+        option_groups = {}
         for option_group, options in self.data_options.items():
+            if text.lower() in option_group.lower():
+                option_groups[option_group] = options
+                continue
             for option in options:
-                if option_name.lower() in option[1].lower():
-                    option_values[option_group] = options
-        return option_values
+                if text.lower() in option[1].lower():
+                    option_groups[option_group] = options
+        for option_group, options in option_groups.items():
+            print('{}: ['.format(option_group))
+            for option in options:
+                print('  {}'.format(option))
+            print(']')
+        return option_groups
 
     def find_variable(self, text):
         """
@@ -175,12 +184,10 @@ class CastorExportClient:
         """
         definitions = []
         for name, definition in self.data_dict.items():
-            # TODO: there's a field "remark" that has a label but no name, so it's None. Remove it from dd
-            try:
-                if text in name:
-                    definitions.append((name, definition))
-            except TypeError:
-                print()
+            if text.lower() in name.lower():
+                definitions.append((name, definition))
+        for d in definitions:
+            print('{}: {}'.format(d[0], json.dumps(d[1], indent=4)))
         return definitions
 
 

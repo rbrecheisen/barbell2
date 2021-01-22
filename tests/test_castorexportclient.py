@@ -1,4 +1,5 @@
 import os
+import json
 import pytest
 
 from barbell2 import CastorExportClient
@@ -21,12 +22,12 @@ def client():
     return client
 
 
-def test_find_option_values(client):
-    option_values = client.find_option_values('Chemoradio')
+def test_find_option_group_from_option_name(client):
+    option_groups = client.find_option_group('Chemoradio')
     key = 'dpca_adjuvant'
-    assert len(option_values.keys()) == 1
-    assert key in option_values.keys()
-    assert option_values[key] == [
+    assert len(option_groups.keys()) == 1
+    assert key in option_groups.keys()
+    assert option_groups[key] == [
         (0, 'No'),
         (1, 'Chemoradiotherapy'),
         (2, 'Chemotherapy'),
@@ -35,7 +36,12 @@ def test_find_option_values(client):
         (9, 'Unknown')
     ]
 
+
+def test_find_option_group_from_group_name(client):
+    client.find_option_group('adjuvant')
+
+
 def test_find_variable(client):
     definitions = client.find_variable('adjuvant')
     for d in definitions:
-        print(d)
+        print('{}: {}'.format(d[0], json.dumps(d[1], indent=4)))
