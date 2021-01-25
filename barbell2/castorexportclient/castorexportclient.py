@@ -27,6 +27,8 @@ class CastorExportClient:
                 'Institute_Abbreviation',                       # ''
                 'Record_Creation_Date',                         # ''
             ],
+            'patient_id_field_name': 'dpca_idcode',
+            'surgery_date_field_name': 'dpca_datok',
             'data_miss_float': [999, 9999, 99999, 999.0, 9999.0],
             'data_miss_date': ['09-09-1809'],
             'to_pandas': {
@@ -171,11 +173,7 @@ class CastorExportClient:
             for option in options:
                 if text.lower() in option[1].lower():
                     option_groups[option_group] = options
-        for option_group, options in option_groups.items():
-            print('{}: ['.format(option_group))
-            for option in options:
-                print('  {}'.format(option))
-            print(']')
+        return option_groups
 
     def find_variable(self, text=''):
         """
@@ -187,8 +185,7 @@ class CastorExportClient:
         for name, definition in self.data_dict.items():
             if text.lower() in name.lower():
                 definitions.append((name, definition))
-        for d in definitions:
-            print('{}: {}'.format(d[0], json.dumps(d[1], indent=4)))
+        return definitions
 
     def find_missing(self, in_column, show_columns):
         """
@@ -199,6 +196,21 @@ class CastorExportClient:
         :return:
         """
         pass
+
+    def find_duplicate_records(self):
+        """
+        Finds duplicate records in the export file.
+        :return: Dictionary with patient ID, gender, date of birth and surgery date
+        """
+        duplicates = {}
+        for idx, row in self.data.iterrows():
+            surgery_date = row[self.params['surgery_date_field_name']]
+            surgery_date = '{}-{}-{}'.format(surgery_date.year, surgery_date.month, surgery_date.day)
+            key = (row[self.params['patient_id_field_name']], surgery_date)
+            if key not in duplicates.keys():
+                duplicates[key] = 0
+            duplicates[key] += 1
+        return duplicates
 
 
 if __name__ == '__main__':

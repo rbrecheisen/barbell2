@@ -38,6 +38,8 @@ def test_find_option_group_from_option_name(client):
 
 
 def test_query(client):
-    data = client.data
-    result = data.query('dpca_geslacht')
-    print(result)
+    pass
+
+
+def test_find_duplicate_records(client):
+    client.find_duplicate_records()
