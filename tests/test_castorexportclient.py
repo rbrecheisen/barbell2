@@ -37,9 +37,16 @@ def test_find_option_group_from_option_name(client):
     ]
 
 
-def test_query(client):
-    pass
+def test_find_variable(client):
+    result = client.find_variable('dpca_geslacht')
+    print(result)
+
+
+def test_find_missing(client):
+    client.find_missing(in_column='dpca_datok', show_columns=['dpca_idcode', 'dpca_geslacht'])
 
 
 def test_find_duplicate_records(client):
-    client.find_duplicate_records()
+    duplicates = client.find_duplicate_records(columns=['dpca_idcode', 'dpca_datok'])
+    for k, v in duplicates.items():
+        print('{}: {}'.format(k, v))

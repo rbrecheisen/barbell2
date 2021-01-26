@@ -119,8 +119,21 @@ class CastorExportClient:
             if column not in self.data_dict.keys():
                 continue
 
-            # Convert column type to Pandas type
+            # Check Pandas type
             pandas_type = self.to_pandas_type(self.data_dict[column]['field_type'])
+
+            # TODO: ======
+            # TODO: Make sure categoricals are created using integers and not floats
+            # TODO: Figure out why "dpca_comorb" contains multi-valued entries
+            # if pandas_type == 'category':
+            #     for idx, value in df_data[column].items():
+            #         if not pd.isna(value):
+            #             try:
+            #                 df_data.loc[idx, column] = int(value)
+            #             except ValueError as e:
+            #                 print(e)
+
+            # Fill with NaN values and create new series according to Pandas type
             df_data[column] = df_data[column].fillna(np.nan)
             df_data[column] = pd.Series(data=df_data[column], dtype=pandas_type)
 
@@ -162,7 +175,7 @@ class CastorExportClient:
 
     def find_option_group(self, text=''):
         """
-        Finds option groups and corresponding option values for the given option name.
+        Finds option groups and corresponding option values for the given (partial) text.
         :param text: (Part of) option name or group name (default='' returns all options groups)
         """
         option_groups = {}
@@ -195,30 +208,46 @@ class CastorExportClient:
         :param show_columns: List of column names to show when displaying records with missing values.
         :return:
         """
-        pass
+        if isinstance(show_columns, str):
+            if not show_columns in self.data.columns:
+                print('Column {} not found'.format(show_columns))
+                return None
+        elif isinstance(show_columns, list) or isinstance(show_columns, tuple):
+            for column in show_columns:
+                if not column in self.data.columns:
+                    print('Column {} not found'.format(show_columns))
+                    return None
+        else:
+            print('Wrong type for show_columns, must be string, list or tuple')
+            return None
+        missing = self.data[in_column].isnull()
+        return self.data.loc[missing == True, show_columns]
 
     def find_duplicate_records(self, columns):
         """
         Finds duplicate records in the export file based on the given key columns.
         :return: Dictionary with record ID, patient ID, gender, date of birth and surgery date
         """
-        # Check that columns exist in data
         for column in columns:
             if not column in self.data.columns:
                 print('Could not find column {}'.format(column))
                 return {}
-        duplicates = {}
+        record_counts = {}
         for idx, row in self.data.iterrows():
             key = []
             for column in columns:
                 key_item = row[column]
-                print(type(key_item))
-            # surgery_date = row[self.params['surgery_date_field_name']]
-            # surgery_date = '{}-{}-{}'.format(surgery_date.year, surgery_date.month, surgery_date.day)
-            # key = (row[self.params['patient_id_field_name']], surgery_date)
-            # if key not in duplicates.keys():
-            #     duplicates[key] = 0
-            # duplicates[key] += 1
+                if self.data[column].dtype == 'datetime64[ns]':
+                    key_item = '{}-{}-{}'.format(key_item.year, key_item.month, key_item.day)
+                key.append(key_item)
+            key = tuple(key)
+            if key not in record_counts.keys():
+                record_counts[key] = 0
+            record_counts[key] += 1
+        duplicates = {}
+        for key, count in record_counts.items():
+            if count > 1:
+                duplicates[key] = count
         return duplicates
 
 
