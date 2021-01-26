@@ -197,19 +197,28 @@ class CastorExportClient:
         """
         pass
 
-    def find_duplicate_records(self):
+    def find_duplicate_records(self, columns):
         """
-        Finds duplicate records in the export file.
-        :return: Dictionary with patient ID, gender, date of birth and surgery date
+        Finds duplicate records in the export file based on the given key columns.
+        :return: Dictionary with record ID, patient ID, gender, date of birth and surgery date
         """
+        # Check that columns exist in data
+        for column in columns:
+            if not column in self.data.columns:
+                print('Could not find column {}'.format(column))
+                return {}
         duplicates = {}
         for idx, row in self.data.iterrows():
-            surgery_date = row[self.params['surgery_date_field_name']]
-            surgery_date = '{}-{}-{}'.format(surgery_date.year, surgery_date.month, surgery_date.day)
-            key = (row[self.params['patient_id_field_name']], surgery_date)
-            if key not in duplicates.keys():
-                duplicates[key] = 0
-            duplicates[key] += 1
+            key = []
+            for column in columns:
+                key_item = row[column]
+                print(type(key_item))
+            # surgery_date = row[self.params['surgery_date_field_name']]
+            # surgery_date = '{}-{}-{}'.format(surgery_date.year, surgery_date.month, surgery_date.day)
+            # key = (row[self.params['patient_id_field_name']], surgery_date)
+            # if key not in duplicates.keys():
+            #     duplicates[key] = 0
+            # duplicates[key] += 1
         return duplicates
 
 
