@@ -149,6 +149,11 @@ class DicomExplorer(BasicShell):
         self.poutput('Ok')
 
     def do_check_pixels(self, verbose):
+        """ Usage: check_pixels
+        Checks for each file in the current result set whether its pixels can be loaded using the pydicom
+        package. If not, this may be caused by the fact that the pixel values are compressed, e.g., in
+        JPEG2000 format. To uncompress the values, use the 'to_raw' command of this tool.
+        """
         files = self.results[self.current_key]['data']
         bad_files = []
         for f in files:
@@ -167,6 +172,11 @@ class DicomExplorer(BasicShell):
         self.poutput('Ok')
 
     def do_to_raw(self, output_dir):
+        """ Usage: to_raw <output_dir>
+        Decompress pixel values to raw format in case they have been compressed. This command requires that
+        the tool gdcmconv is installed. To install it using HomeBrew (for Mac). The command requires an empty
+        output directory where the converted DICOMs are saved.
+        """
         result = os.system('which gdcmconv>/dev/null')
         if result > 0:
             self.poutput('Tool gdcmconv is not installed')
