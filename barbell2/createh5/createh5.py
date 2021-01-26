@@ -66,6 +66,7 @@ def has_correct_dimensions(dcm_file, width, height):
 
 
 def collect_files(root_dir, collections, width, height):
+    f_skip = open('skipped.txt', 'a')
     file_list = []
     collection_list = [x.strip() for x in collections.split(',')]
     LOG.print(collection_list)
@@ -81,6 +82,11 @@ def collect_files(root_dir, collections, width, height):
                         if os.path.isfile(tag_file):
                             file_list.append([dcm_file, tag_file])
                             LOG.print('Adding {} to collection'.format(dcm_file))
+                        else:
+                            f_skip.write('missing TAG file: {}'.format(dcm_file))
+                    else:
+                        f_skip.write('wrong dimensions: {} ({}, {})'.format(dcm_file, width, height))
+    f_skip.close()
     return file_list
 
 
@@ -143,6 +149,7 @@ def update_label_counts(label_counts, labels):
 
 
 def create_h5_from_file_list(file_list, output_file_path):
+    f_skip = open('skipped.txt', 'a')
     label_counts = {}
     with h5py.File(output_file_path, 'w') as h5f:
         count = 1
@@ -152,11 +159,13 @@ def create_h5_from_file_list(file_list, output_file_path):
             tag_pixels = get_tag_pixels(file_pair[1], dcm_pixels.shape)
             if tag_pixels is None:
                 LOG.print('ERROR: Could not retrieve pixels from {}'.format(file_pair[1]))
+                f_skip.write('error retrieving TAG pixels: {}'.format(file_pair[0]))
                 continue
             tag_pixels = update_labels(tag_pixels)
             labels = np.unique(tag_pixels)
             if not labels_ok(labels):
                 LOG.print('ERROR: Labels not ok ({})'.format(labels))
+                f_skip.write('wrong labels TAG file: {}'.format(file_pair[0]))
                 continue
             label_counts = update_label_counts(label_counts, labels)
             group = h5f.create_group('{}'.format(file_name))
@@ -166,6 +175,7 @@ def create_h5_from_file_list(file_list, output_file_path):
             count += 1
     LOG.print('Done')
     LOG.print('{}: {}'.format(output_file_path, label_counts))
+    f_skip.close()
 
 
 def run(args):
