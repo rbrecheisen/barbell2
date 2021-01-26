@@ -110,8 +110,8 @@ class DicomExplorer(BasicShell):
                         self.poutput(output)
         self.poutput('Ok')
 
-    def do_show_tags(self, tag_name):
-        """ Usage: show_tag <tag name>
+    def do_show_values(self, tag_name):
+        """ Usage: show_values <tag name>
         Show values for tag <tag name> in the currently loaded DICOM files.
         """
         files = self.results[self.current_key]['data']
@@ -130,22 +130,27 @@ class DicomExplorer(BasicShell):
         dumped. If multiple hits have been found, a list of these file paths is shown from which the user
         must choose.
         """
-        files = self.results[self.current_key]['data']
-        if not os.path.isfile(file_path):
-            hits = []
-            for f in files:
-                if file_path in f:
-                    hits.append(f)
-            if len(hits) == 1:
-                p = pydicom.read_file(file_path)
-                self.poutput(p)
-            else:
-                self.poutput('Choose one of the following candidates:')
-                for hit in hits:
-                    self.poutput(hit)
-        else:
+        if os.path.isfile(file_path):
             p = pydicom.read_file(file_path)
             self.poutput(p)
+        else:
+            if self.current_key is None:
+                self.poutput('No files loaded')
+            else:
+                files = self.results[self.current_key]['data']
+                hits = []
+                for f in files:
+                    if file_path in f:
+                        hits.append(f)
+                if len(hits) == 0:
+                    self.poutput('File {} not found'.format(file_path))
+                elif len(hits) == 1:
+                    p = pydicom.read_file(file_path)
+                    self.poutput(p)
+                else:
+                    self.poutput('Choose one of the following candidates:')
+                    for hit in hits:
+                        self.poutput(hit)
         self.poutput('Ok')
 
     def do_check_pixels(self, verbose):

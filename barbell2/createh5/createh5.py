@@ -83,9 +83,9 @@ def collect_files(root_dir, collections, width, height):
                             file_list.append([dcm_file, tag_file])
                             LOG.print('Adding {} to collection'.format(dcm_file))
                         else:
-                            f_skip.write('missing TAG file: {}'.format(dcm_file))
+                            f_skip.write('missing TAG file: {}\n'.format(dcm_file))
                     else:
-                        f_skip.write('wrong dimensions: {} ({}, {})'.format(dcm_file, width, height))
+                        f_skip.write('wrong dimensions: {}\n'.format(dcm_file))
     f_skip.close()
     return file_list
 
@@ -159,13 +159,13 @@ def create_h5_from_file_list(file_list, output_file_path):
             tag_pixels = get_tag_pixels(file_pair[1], dcm_pixels.shape)
             if tag_pixels is None:
                 LOG.print('ERROR: Could not retrieve pixels from {}'.format(file_pair[1]))
-                f_skip.write('error retrieving TAG pixels: {}'.format(file_pair[0]))
+                f_skip.write('error retrieving TAG pixels: {}\n'.format(file_pair[0]))
                 continue
             tag_pixels = update_labels(tag_pixels)
             labels = np.unique(tag_pixels)
             if not labels_ok(labels):
                 LOG.print('ERROR: Labels not ok ({})'.format(labels))
-                f_skip.write('wrong labels TAG file: {}'.format(file_pair[0]))
+                f_skip.write('wrong labels TAG file: {}\n'.format(file_pair[0]))
                 continue
             label_counts = update_label_counts(label_counts, labels)
             group = h5f.create_group('{}'.format(file_name))

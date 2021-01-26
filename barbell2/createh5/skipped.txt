@@ -1,1 +1,0 @@
-wrong dimensions: /Volumes/USB_SECURE1/data/radiomics/projects/deepseg/data/mega/final/HEERLEN/1251fc2.dcm (512, 512)wrong dimensions: /Volumes/USB_SECURE1/data/radiomics/projects/deepseg/data/mega/final/MAASTRICHT_AKEN/IM_223.dcm (512, 512)wrong dimensions: /Volumes/USB_SECURE1/data/radiomics/projects/deepseg/data/mega/final/NEWEPOC/029002_pre_PV_L3.dcm (512, 512)
