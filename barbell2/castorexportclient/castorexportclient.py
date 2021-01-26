@@ -14,7 +14,8 @@ class CastorExportClient:
             'sheet_name_data': 'Study results',                 # with spaces
             'sheet_name_data_dict': 'Study variable list',      # ''
             'sheet_name_data_options': 'Field options',         # ''
-            'data_dict_var_name': 'Variable_name',              # without spaces because column names are updated
+            'data_dict_crf_name': 'Step_name',                  # without spaces because column names are updated
+            'data_dict_var_name': 'Variable_name',              # ''
             'data_dict_field_type': 'Field_type',               # ''
             'data_dict_field_label': 'Field_label',             # ''
             'data_dict_option_group_name': 'Optiongroup_name',  # ''
@@ -26,6 +27,8 @@ class CastorExportClient:
                 'Institute_Abbreviation',                       # ''
                 'Record_Creation_Date',                         # ''
             ],
+            'patient_id_field_name': 'dpca_idcode',
+            'surgery_date_field_name': 'dpca_datok',
             'data_miss_float': [999, 9999, 99999, 999.0, 9999.0],
             'data_miss_date': ['09-09-1809'],
             'to_pandas': {
@@ -56,7 +59,7 @@ class CastorExportClient:
         """
         return value.replace(' ', '_')
 
-    def to_pandas(self, field_type):
+    def to_pandas_type(self, field_type):
         """
         Lookup Pandas data type for given Castor field type.
         :param field_type: Castor field type name
@@ -85,6 +88,7 @@ class CastorExportClient:
         # Add columns to ignore to data dictionary
         for column in self.params['data_cols_ignore']:
             data_dict[column] = {
+                'crf_name': '',
                 'field_label': column,
                 'field_type': 'string',
                 'pandas_type': 'object',
@@ -94,13 +98,15 @@ class CastorExportClient:
         # Store field definitions in data dictionary
         for idx, row in df_data_dict.iterrows():
             var_name = row[self.params['data_dict_var_name']]
-            if var_name != '':
-                data_dict[var_name] = {
-                    'field_label': row[self.params['data_dict_field_label']],
-                    'field_type': row[self.params['data_dict_field_type']],
-                    'pandas_type': self.to_pandas(row[self.params['data_dict_field_type']]),
-                    'option_group_name': row[self.params['data_dict_option_group_name']],
-                }
+            if var_name is None or var_name == '' or pd.isna(var_name):
+                continue
+            data_dict[var_name] = {
+                'crf_name': row[self.params['data_dict_crf_name']],
+                'field_label': row[self.params['data_dict_field_label']],
+                'field_type': row[self.params['data_dict_field_type']],
+                'pandas_type': self.to_pandas_type(row[self.params['data_dict_field_type']]),
+                'option_group_name': row[self.params['data_dict_option_group_name']],
+            }
 
         self.data_dict = data_dict
 
@@ -114,7 +120,7 @@ class CastorExportClient:
                 continue
 
             # Convert column type to Pandas type
-            pandas_type = self.to_pandas(self.data_dict[column]['field_type'])
+            pandas_type = self.to_pandas_type(self.data_dict[column]['field_type'])
             df_data[column] = df_data[column].fillna(np.nan)
             df_data[column] = pd.Series(data=df_data[column], dtype=pandas_type)
 
@@ -154,34 +160,57 @@ class CastorExportClient:
 
         return self.data, self.data_dict, self.data_options
 
-    def find_option_values(self, option_name):
+    def find_option_group(self, text=''):
         """
         Finds option groups and corresponding option values for the given option name.
-        :param option_name: Option name
-        :return: Dictionary of option groups with a list of option name/value pairs as key
+        :param text: (Part of) option name or group name (default='' returns all options groups)
         """
-        option_values = {}
+        option_groups = {}
         for option_group, options in self.data_options.items():
+            if text.lower() in option_group.lower():
+                option_groups[option_group] = options
+                continue
             for option in options:
-                if option_name.lower() in option[1].lower():
-                    option_values[option_group] = options
-        return option_values
+                if text.lower() in option[1].lower():
+                    option_groups[option_group] = options
+        return option_groups
 
-    def find_variable(self, text):
+    def find_variable(self, text=''):
         """
-        Finds variable definitions that contain <text> in either the name or label.
-        :param text: (Part of) variable name or label
-        :return: List of variable definitions
+        Finds variable definitions that contain <text> in either the name or label. Info returned
+        contains: CRF name, field label, field type, Pandas type and option group name (if applicable).
+        :param text: (Part of) variable name or label (default='' returns all variable definitions)
         """
         definitions = []
         for name, definition in self.data_dict.items():
-            # TODO: there's a field "remark" that has a label but no name, so it's None. Remove it from dd
-            try:
-                if text in name:
-                    definitions.append((name, definition))
-            except TypeError:
-                print()
+            if text.lower() in name.lower():
+                definitions.append((name, definition))
         return definitions
+
+    def find_missing(self, in_column, show_columns):
+        """
+        Finds records with missing values in column <in_column>. Each record is displayed as indicated
+        by <show_columns>
+        :param in_column: Column that is searched for missing values.
+        :param show_columns: List of column names to show when displaying records with missing values.
+        :return:
+        """
+        pass
+
+    def find_duplicate_records(self):
+        """
+        Finds duplicate records in the export file.
+        :return: Dictionary with patient ID, gender, date of birth and surgery date
+        """
+        duplicates = {}
+        for idx, row in self.data.iterrows():
+            surgery_date = row[self.params['surgery_date_field_name']]
+            surgery_date = '{}-{}-{}'.format(surgery_date.year, surgery_date.month, surgery_date.day)
+            key = (row[self.params['patient_id_field_name']], surgery_date)
+            if key not in duplicates.keys():
+                duplicates[key] = 0
+            duplicates[key] += 1
+        return duplicates
 
 
 if __name__ == '__main__':
