@@ -37,7 +37,10 @@ if [ "${CMD}" == "" ]; then
   export CMD=minor
 fi
 
-# Upgrade version number
+# Store old version
+export OLD_VERSION=$(cat VERSION)
+
+# Upgrade version
 docker run --rm -it -v $(pwd):/app -w /app treeder/bump --filename VERSION ${CMD}
 export VERSION=$(cat VERSION)
 echo ""
@@ -46,6 +49,10 @@ read line
 if [ "${line}" != "yes" ]; then
   exit 0
 fi
+
+# Update version numnber in barbell2.__init__
+sed -i ".bak" "s/${OLD_VERSION}/${VERSION}/g" barbell2/__init__.py
+rm barbell2/__init__.py.bak
 
 # Check git status
 git status

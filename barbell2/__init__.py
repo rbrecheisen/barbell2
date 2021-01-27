@@ -1,10 +1,8 @@
 """Top-level package for Barbell2."""
 
-import os
-
 __author__ = """Ralph Brecheisen"""
 __email__ = 'ralph.brecheisen@gmail.com'
-__version__ = os.environ['VERSION']
+__version__ = '1.8.0'
 
 from .dicomexplorer.dicomexplorer import DicomExplorer
 from .castorexportclient.castorexportclient import CastorExportClient
