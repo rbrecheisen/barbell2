@@ -188,7 +188,7 @@ class CastorExportClient:
                     option_groups[option_group] = options
         return option_groups
 
-    def find_variable(self, text=''):
+    def find_variable_def(self, text=''):
         """
         Finds variable definitions that contain <text> in either the name or label. Info returned
         contains: CRF name, field label, field type, Pandas type and option group name (if applicable).
@@ -199,6 +199,14 @@ class CastorExportClient:
             if text.lower() in name.lower():
                 definitions.append((name, definition))
         return definitions
+
+    def find_values(self, var_name):
+        """
+        Finds values for given <var_name>.
+        :param var_name: Variable (column) to display values for.
+        :return: Pandas series with values
+        """
+        return self.data[var_name]
 
     def find_missing(self, in_column, show_columns):
         """
@@ -249,6 +257,19 @@ class CastorExportClient:
             if count > 1:
                 duplicates[key] = count
         return duplicates
+
+    def query(self, query_string):
+        """
+        Run the given query on the Pandas dataframe. If query fails with a value error we try again,
+        using the 'python' engine. This seems only to happen when running the query from within
+        a Jupyter notebook.
+        :param query_string: Query string
+        :return: Result data frame
+        """
+        try:
+            return self.data.query(query_string)
+        except ValueError:
+            return self.data.query(query_string, engine='python')
 
 
 if __name__ == '__main__':

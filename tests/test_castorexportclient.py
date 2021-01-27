@@ -22,31 +22,52 @@ def client():
     return client
 
 
-def test_find_option_group_from_option_name(client):
-    option_groups = client.find_option_group('Chemoradio')
-    key = 'dpca_adjuvant'
-    assert len(option_groups.keys()) == 1
-    assert key in option_groups.keys()
-    assert option_groups[key] == [
-        (0, 'No'),
-        (1, 'Chemoradiotherapy'),
-        (2, 'Chemotherapy'),
-        (3, 'Radiotherapy'),
-        (7, 'Other'),
-        (9, 'Unknown')
-    ]
+def test_query(client):
+    # print(client.data.query('dpca_gebjaar > 1945')['dpca_gebjaar'])
+    print(client.query('dpca_gebjaar > 1945')['dpca_gebjaar'])
 
-
-def test_find_variable(client):
-    result = client.find_variable('dpca_geslacht')
-    print(result)
-
-
-def test_find_missing(client):
-    client.find_missing(in_column='dpca_datok', show_columns=['dpca_idcode', 'dpca_geslacht'])
-
-
-def test_find_duplicate_records(client):
-    duplicates = client.find_duplicate_records(columns=['dpca_idcode', 'dpca_datok'])
-    for k, v in duplicates.items():
-        print('{}: {}'.format(k, v))
+# def test_view_weird_comorbidities(client):
+#     d = client.data
+#     for idx, row in d.iterrows():
+#         x = row['dpca_comorb']
+#         try:
+#             int(x)
+#         except ValueError:
+#             print('{}: {}'.format(row['dpca_idcode'], x))
+#
+#
+# def test_find_option_group_from_option_name(client):
+#     option_groups = client.find_option_group('Chemoradio')
+#     key = 'dpca_adjuvant'
+#     assert len(option_groups.keys()) == 1
+#     assert key in option_groups.keys()
+#     assert option_groups[key] == [
+#         (0, 'No'),
+#         (1, 'Chemoradiotherapy'),
+#         (2, 'Chemotherapy'),
+#         (3, 'Radiotherapy'),
+#         (7, 'Other'),
+#         (9, 'Unknown')
+#     ]
+#
+#
+# def test_find_variable_def(client):
+#     result = client.find_variable_def('geslacht')
+# #     print(result)
+#
+#
+# def test_find_values(client):
+#     result = client.find_values('dpca_comorb')
+#     print(result.cat.categories)
+#     for idx, val in result.iteritems():
+#         print(val)
+#
+#
+# def test_find_missing(client):
+#     client.find_missing(in_column='dpca_datok', show_columns=['dpca_idcode', 'dpca_geslacht'])
+#
+#
+# def test_find_duplicate_records(client):
+#     duplicates = client.find_duplicate_records(columns=['dpca_idcode', 'dpca_datok'])
+#     for k, v in duplicates.items():
+#         print('{}: {}'.format(k, v))
