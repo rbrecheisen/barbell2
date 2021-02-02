@@ -16,3 +16,4 @@ autosegl3
 
 - implement first test
 - create wrappers for leroy's code
+- implement tensorflow simulation mode (or whatever works on Macbook)
