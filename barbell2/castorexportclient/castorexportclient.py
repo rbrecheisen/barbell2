@@ -188,7 +188,7 @@ class CastorExportClient:
                     option_groups[option_group] = options
         return option_groups
 
-    def find_variable_def(self, text=''):
+    def find_variable(self, text=''):
         """
         Finds variable definitions that contain <text> in either the name or label. Info returned
         contains: CRF name, field label, field type, Pandas type and option group name (if applicable).
@@ -196,7 +196,15 @@ class CastorExportClient:
         """
         definitions = []
         for name, definition in self.data_dict.items():
+            found = False
             if text.lower() in name.lower():
+                found = True
+            elif text.lower() in definition['field_label'].lower():
+                found = True
+            if found:
+                if not pd.isna(definition['option_group_name']):
+                    option_group = self.find_option_group(definition['option_group_name'])
+                    definition['options'] = option_group[definition['option_group_name']]
                 definitions.append((name, definition))
         return definitions
 
@@ -234,7 +242,7 @@ class CastorExportClient:
     def find_duplicate_records(self, columns):
         """
         Finds duplicate records in the export file based on the given key columns.
-        :return: Dictionary with record ID, patient ID, gender, date of birth and surgery date
+        :return: Dictionary with keys that contain more than 1 record.
         """
         for column in columns:
             if not column in self.data.columns:
@@ -263,6 +271,15 @@ class CastorExportClient:
         Run the given query on the Pandas dataframe. If query fails with a value error we try again,
         using the 'python' engine. This seems only to happen when running the query from within
         a Jupyter notebook.
+
+        Example queries:
+        ----------------
+        Given the column (variable) names 'dob' and 'gender', select all records where dob is earlier than
+        01-01-1945 and gender is male. Note: you must lookup the option value for 'male' using the find_option_group
+        function, e.g., find_option_group('gender')
+
+            client.query('dob < "01-01-1945" & gender == 1')
+
         :param query_string: Query string
         :return: Result data frame
         """

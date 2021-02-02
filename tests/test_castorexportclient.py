@@ -22,10 +22,9 @@ def client():
     return client
 
 
-def test_query(client):
-    # print(client.data.query('dpca_gebjaar > 1945')['dpca_gebjaar'])
-    print(client.query('dpca_gebjaar > 1945')['dpca_gebjaar'])
-
+# def test_query(client):
+#     print(client.query('dpca_gebjaar > 1945')['dpca_gebjaar'])
+#
 # def test_view_weird_comorbidities(client):
 #     d = client.data
 #     for idx, row in d.iterrows():
@@ -51,9 +50,9 @@ def test_query(client):
 #     ]
 #
 #
-# def test_find_variable_def(client):
-#     result = client.find_variable_def('geslacht')
-# #     print(result)
+def test_find_variable(client):
+    result = client.find_variable('gender')
+    print(result)
 #
 #
 # def test_find_values(client):
