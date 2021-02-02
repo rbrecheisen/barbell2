@@ -202,8 +202,6 @@ class CastorExportClient:
                     found = True
                 elif key.lower() in definition['crf_name'].lower():
                     found = True
-                elif key.lower() in definition['option_group_name'].lower():
-                    found = True
                 else:
                     pass
                 if found:
