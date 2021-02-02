@@ -181,24 +181,36 @@ class CastorExportClient:
                     option_groups[option_group] = options
         return option_groups
 
-    def find_variable(self, text=''):
+    def find_variable(self, keys):
         """
         Finds variable definitions that contain <text> in either the name or label. Info returned
         contains: CRF name, field label, field type, Pandas type and option group name (if applicable).
-        :param text: (Part of) variable name or label (default='' returns all variable definitions)
+        :param keys: Key or list of keys
+        :return: List of variable definitions matching given keys
         """
+        if isinstance(keys, str):
+            keys = [keys]
+        if not isinstance(keys, list):
+            print('Keys must be string or list of strings')
         definitions = []
         for name, definition in self.data_dict.items():
             found = False
-            if text.lower() in name.lower():
-                found = True
-            elif text.lower() in definition['field_label'].lower():
-                found = True
-            if found:
-                if not pd.isna(definition['option_group_name']):
-                    option_group = self.find_option_group(definition['option_group_name'])
-                    definition['options'] = option_group[definition['option_group_name']]
-                definitions.append((name, definition))
+            for key in keys:
+                if key.lower() in name.lower():
+                    found = True
+                elif key.lower() in definition['field_label'].lower():
+                    found = True
+                elif key.lower() in definition['crf_name'].lower():
+                    found = True
+                elif key.lower() in definition['option_group_name'].lower():
+                    found = True
+                else:
+                    pass
+                if found:
+                    if not pd.isna(definition['option_group_name']):
+                        option_group = self.find_option_group(definition['option_group_name'])
+                        definition['options'] = option_group[definition['option_group_name']]
+                    definitions.append((name, definition))
         return definitions
 
     def find_values(self, var_name):
