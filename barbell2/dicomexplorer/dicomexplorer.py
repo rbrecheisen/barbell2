@@ -9,7 +9,7 @@ class DicomExplorer(BasicShell):
 
     def __init__(self):
         super(DicomExplorer, self).__init__()
-        self.intro = 'Welcome to DICOM Explorer 2!'
+        self.intro = 'Welcome to DICOM Explorer!'
         self.prompt = '(dicom) '
 
     ###
