@@ -283,6 +283,22 @@ class CastorExportClient:
 
             client.query('dob < "01-01-1945" & gender == 1')
 
+        Common query variables:
+        -----------------------
+
+        DPCA:
+        - dpca_gebdat       Birth date
+        - dpca_gebjaar      Year of birth
+        - dpca_geslacht     Gender (1: male, 2: female)
+        - dpca_typok        Type of surgery procedure
+        - dpca_comorb       Comorbidities (0: no, 1: yes)
+        - dpca_ovl          Deceased (0: no, 1: yes)
+        - dpca_datovl       Date of death
+        - dpca_afwijking    Most recent disease diagnosis
+
+        DHBA:
+        - dhba_diagnose     Most recent disease diagnosis
+
         :param query_string: Query string
         :return: Result data frame
         """
