@@ -32,8 +32,8 @@ class CastorExportClient:
             'data_miss_float': [999, 9999, 99999, 999.0, 9999.0],
             'data_miss_date': ['09-09-1809'],
             'to_pandas': {
-                'dropdown': 'category',
-                'radio': 'category',
+                'dropdown': 'Int64',
+                'radio': 'Int64',
                 'string': 'object',
                 'textarea': 'object',
                 'remark': 'object',
@@ -122,20 +122,6 @@ class CastorExportClient:
 
             # Check Pandas type
             pandas_type = self.to_pandas_type(self.data_dict[column]['field_type'])
-
-            # TODO: ======
-            # TODO: Make sure categoricals are created using integers and not floats
-            # TODO: Figure out why "dpca_comorb" contains multi-valued entries
-            if pandas_type == 'category':
-                for idx, value in df_data[column].items():
-                    if not pd.isna(value):
-                        try:
-                            df_data.loc[idx, column] = int(value)
-                        except ValueError as e:
-                            # This exception gets thrown when trying to convert a multi-value entry
-                            # to an integer. These values occur in the dpca_comorb column sometimes.
-                            # E.g., "1,2,3". Just skip them
-                            print('{}: {}'.format(column, e))
 
             # Fill with NaN values and create new series according to Pandas type
             df_data[column] = df_data[column].fillna(np.nan)

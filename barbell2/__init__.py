@@ -2,7 +2,7 @@
 
 __author__ = """Ralph Brecheisen"""
 __email__ = 'ralph.brecheisen@gmail.com'
-__version__ = '1.11.0'
+__version__ = '1.12.0'
 
 from .dicomexplorer.dicomexplorer import DicomExplorer
 from .castorexportclient.castorexportclient import CastorExportClient

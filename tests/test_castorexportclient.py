@@ -55,10 +55,12 @@ def client():
 #     print(result)
 #
 #
-def test_find_values(client):
-    pass
-
-
+# def test_find_values(client):
+#     result = client.find_values('dpca_comorb')
+#     for item in result.iteritems():
+#         print(item)
+#
+#
 # def test_find_missing(client):
 #     client.find_missing(in_column='dpca_datok', show_columns=['dpca_idcode', 'dpca_geslacht'])
 #
