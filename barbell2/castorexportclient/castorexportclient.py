@@ -69,10 +69,11 @@ class CastorExportClient:
             return self.params['to_pandas'][field_type]
         return None
 
-    def load_data(self, file_path):
+    def load_data(self, file_path, verbose=False):
         """
         Loads Castor export Excel file containing the data, data dictionary and field options.
         :param file_path: Path to Excel file
+        :param verbose: Verbose
         :return: Tuple of data, data dictionary and options
         """
         # Load data dictionary first and remove spaces from columns
@@ -125,13 +126,16 @@ class CastorExportClient:
             # TODO: ======
             # TODO: Make sure categoricals are created using integers and not floats
             # TODO: Figure out why "dpca_comorb" contains multi-valued entries
-            # if pandas_type == 'category':
-            #     for idx, value in df_data[column].items():
-            #         if not pd.isna(value):
-            #             try:
-            #                 df_data.loc[idx, column] = int(value)
-            #             except ValueError as e:
-            #                 print(e)
+            if pandas_type == 'category':
+                for idx, value in df_data[column].items():
+                    if not pd.isna(value):
+                        try:
+                            df_data.loc[idx, column] = int(value)
+                        except ValueError as e:
+                            # This exception gets thrown when trying to convert a multi-value entry
+                            # to an integer. These values occur in the dpca_comorb column sometimes.
+                            # E.g., "1,2,3". Just skip them
+                            print('{}: {}'.format(column, e))
 
             # Fill with NaN values and create new series according to Pandas type
             df_data[column] = df_data[column].fillna(np.nan)
@@ -147,6 +151,9 @@ class CastorExportClient:
                     df_data.loc[df_data[column] == mv, column] = pd.NaT
             else:
                 pass
+
+            if verbose:
+                print('Processed column {}'.format(column))
 
         self.data = df_data
 

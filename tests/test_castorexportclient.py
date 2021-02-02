@@ -50,18 +50,15 @@ def client():
 #     ]
 #
 #
-def test_find_variable(client):
-    result = client.find_variable('gender')
-    print(result)
+# def test_find_variable(client):
+#     result = client.find_variable('gender')
+#     print(result)
 #
 #
-# def test_find_values(client):
-#     result = client.find_values('dpca_comorb')
-#     print(result.cat.categories)
-#     for idx, val in result.iteritems():
-#         print(val)
-#
-#
+def test_find_values(client):
+    pass
+
+
 # def test_find_missing(client):
 #     client.find_missing(in_column='dpca_datok', show_columns=['dpca_idcode', 'dpca_geslacht'])
 #
