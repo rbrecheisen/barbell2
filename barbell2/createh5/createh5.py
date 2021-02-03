@@ -1,257 +1,181 @@
 import os
-import argparse
 import h5py
-import pydicom
 import random
-
+import pydicom
 import numpy as np
 
-from barbell2.utils import MyException, Logger
+from barbell2.utils import Logger
+from barbell2.lib.dicom import is_dicom
 from barbell2.lib.dicom import Dcm2Numpy, Tag2NumPy
 
 from sklearn.model_selection import train_test_split
 
-LOG = None
 
+class CreateHDF5:
 
-def info_requested(args):
-    if len(args) == 2 and args[1] == '--info':
-        return True
-    return False
-
-
-def show_intro():
-    LOG.print("""
-    === CREATEH5 ===
-    Welcome to the createh5 tool of the Barbell2 package!
-    This tool allows you to create HDF5 files from collections of single DICOM images and associated TAG files that
-    contain segmentations of various regions of interest in the DICOM images. You can use the tool to create training,
-    validation and test sets for deep learning with the Keras framework.
-    """)
-
-
-def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('root_dir', help='Root folder containing collection folders')
-    parser.add_argument('output_dir', help='Output folder where train.h5, validation.h5 and test.h5 will be written')
-    parser.add_argument('--output_file_name_training', help='Output file name training set', default='training.h5')
-    parser.add_argument('--output_file_name_validation', help='Output file name validation set', default='validation.h5')
-    parser.add_argument('--output_file_name_testing', help='Output file name test set', default='testing.h5')
-    parser.add_argument('--height', type=int, help='Image height in pixels (rows in DICOM header)', default=512)
-    parser.add_argument('--width', type=int, help='Image width in pixels (columns in DICOM header)', default=512)
-    parser.add_argument('--training', help='Comma-separated list of collection names for training')
-    parser.add_argument('--validation', help='Comma-separated list of collection names for validation')
-    parser.add_argument('--testing', help='Comma-separated list of collection names for validation')
-    parser.add_argument('--split', help='Comma-separated list of collection names for a 80/20 split between training and validation')
-    parser.add_argument('--split_percentage', type=float, help='Percentage to split on (default: .8)', default=0.8)
-    # https://stackoverflow.com/questions/8259001/python-argparse-command-line-flags-without-arguments
-    # parser.add_argument('--info', help='Shows detailed help info', action='store_true')
-    args = parser.parse_args()
-    return args
-
-
-def check_collections(root_dir, collections):
-    collection_list = [x.strip() for x in collections.split(',')]
-    for collection in collection_list:
-        if not os.path.isdir(os.path.join(root_dir, collection)):
-            raise MyException('Collection directory "{}" does not exist'.format(collection))
-    LOG.print('Done')
-
-
-def has_correct_dimensions(dcm_file, width, height):
-    p = pydicom.read_file(dcm_file)
-    if int(p.Rows) == height and int(p.Columns) == width:
-        return True
-    return False
-
-
-def collect_files(root_dir, collections, width, height):
-    f_skip = open('skipped.txt', 'a')
-    file_list = []
-    collection_list = [x.strip() for x in collections.split(',')]
-    LOG.print(collection_list)
-    for collection in collection_list:
-        collection_dir = os.path.join(root_dir, collection)
-        for root, dirs, files in os.walk(collection_dir):
-            for f in files:
-                if f.endswith('.dcm') and not f.startswith('._'):
-                    dcm_file = os.path.join(root, f)
-                    # Only allow images to be included that have the correct dimension (e.g., 512x512)
-                    if has_correct_dimensions(dcm_file, width, height):
-                        tag_file = os.path.join(root, f)[:-4] + '.tag'
-                        if os.path.isfile(tag_file):
-                            file_list.append([dcm_file, tag_file])
-                            LOG.print('Adding {} to collection'.format(dcm_file))
-                        else:
-                            f_skip.write('missing TAG file: {}\n'.format(dcm_file))
-                    else:
-                        f_skip.write('wrong dimensions: {}\n'.format(dcm_file))
-    f_skip.close()
-    return file_list
-
-
-def shuffle_file_list(file_list):
-    random.shuffle(file_list)
-    return file_list
-
-
-def split_file_list(file_list, percentage):
-    x_train, x_test = train_test_split(file_list, test_size=1.0 - percentage)
-    return x_train, x_test
-
-
-def get_dcm_pixels(file_path):
-    dcm2numpy = Dcm2Numpy()
-    dcm2numpy.set_input_dicom_file_path(file_path)
-    dcm2numpy.set_normalize_enabled()
-    dcm2numpy.execute()
-    return dcm2numpy.get_output_numpy_array()
-
-
-def get_tag_pixels(file_path, shape):
-    tag2numpy = Tag2NumPy(shape)
-    tag2numpy.set_input_tag_file_path(file_path)
-    tag2numpy.execute()
-    pixels = tag2numpy.get_output_numpy_array()
-    # Note that sometimes pixels = None because of failure to reshape the pixel array
-    # to the size of the DICOM image
-    return pixels
-
-
-def update_labels(pixels):
-    # Alberta protocol: AIR = 0, MUSCLE = 1, IMAT = 2, VAT = 5, SAT = 7
-    # pixels[pixels == 0] = 0
-    pixels[pixels == 2] = 0
-    pixels[pixels == 4] = 0
-    pixels[pixels == 11] = 0
-    pixels[pixels == 12] = 0
-    pixels[pixels == 14] = 0
-    # pixels[pixels == 1] = 1
-    pixels[pixels == 5] = 2
-    pixels[pixels == 7] = 3
-    return pixels
-
-
-def labels_ok(labels):
-    for label in [0, 1, 2, 3]:
-        if label not in labels:
-            return False
-    return len(labels) == 4
-
-
-def update_label_counts(label_counts, labels):
-    for label in labels:
-        if label not in label_counts.keys():
-            label_counts[label] = 1
+    def __init__(self, dir_path, output_files, rows, columns, test_size=0.0, is_training=True, log_dir='.'):
+        self.dir_path = dir_path
+        self.is_training = is_training
+        if isinstance(output_files, str):
+            self.output_files = [output_files]
         else:
-            label_counts[label] += 1
-    return label_counts
+            self.output_files = output_files
+        if not self.is_training:
+            if len(self.output_files) != 1:
+                raise RuntimeError('For prediction provide only one output file')
+        self.rows = rows
+        self.columns = columns
+        self.test_size = test_size
+        os.makedirs(log_dir, exist_ok=True)
+        self.log = Logger(file_name_prefix='createh5_', to_dir=log_dir)
 
+    @staticmethod
+    def has_dimensions(dcm_file, rows, columns):
+        p = pydicom.read_file(dcm_file)
+        if int(p.Rows) == rows and int(p.Columns) == columns:
+            return True
+        return False
 
-def create_h5_from_file_list(file_list, output_file_path):
-    f_skip = open('skipped.txt', 'a')
-    label_counts = {}
-    with h5py.File(output_file_path, 'w') as h5f:
+    @staticmethod
+    def get_tag_file_path(dcm_file, append=False):
+        if dcm_file.endswith('.dcm') and not append:
+            return dcm_file[:-4] + '.tag'
+        else:
+            return dcm_file + '.tag'
+
+    def collect_files(self, dir_path, rows, columns, is_training):
+        files_list = []
         count = 1
-        for file_pair in file_list:
-            file_name = os.path.split(file_pair[0])[1][:-4]
-            dcm_pixels = get_dcm_pixels(file_pair[0])
-            tag_pixels = get_tag_pixels(file_pair[1], dcm_pixels.shape)
-            if tag_pixels is None:
-                LOG.print('ERROR: Could not retrieve pixels from {}'.format(file_pair[1]))
-                f_skip.write('error retrieving TAG pixels: {}\n'.format(file_pair[0]))
-                continue
-            tag_pixels = update_labels(tag_pixels)
-            labels = np.unique(tag_pixels)
-            if not labels_ok(labels):
-                LOG.print('ERROR: Labels not ok ({})'.format(labels))
-                f_skip.write('wrong labels TAG file: {}\n'.format(file_pair[0]))
-                continue
-            label_counts = update_label_counts(label_counts, labels)
-            group = h5f.create_group('{}'.format(file_name))
-            group.create_dataset('images', data=dcm_pixels)
-            group.create_dataset('labels', data=tag_pixels)
-            LOG.print('{:04d} added images and labels ({}) for patient {}'.format(count, labels, file_name))
-            count += 1
-    LOG.print('Done')
-    LOG.print('{}: {}'.format(output_file_path, label_counts))
-    f_skip.close()
+        # TODO: Make sure you store DICOM and TAG files as tuple pairs!
+        for root, dirs, files in os.walk(dir_path):
+            for f in files:
+                f = os.path.join(root, f)
+                if is_dicom(f):
+                    if self.has_dimensions(f, rows, columns):
+                        if is_training:
+                            append = False
+                            tag_file = self.get_tag_file_path(f)
+                            if os.path.isfile(tag_file):
+                                append = True
+                            else:
+                                tag_file = self.get_tag_file_path(f, append=True)
+                                if os.path.isfile(tag_file):
+                                    append = True
+                                else:
+                                    self.log.print('File {} does not have TAG file'.format(f))
+                            if append:
+                                files_list.append((f, tag_file))
+                                self.log.print('{:03d} Appended {} and TAG file'.format(count, f))
+                                count += 1
+                        else:
+                            files_list.append((f, ))
+                            self.log.print('{:03d} Appended {}'.format(count, f))
+                            count += 1
+                    else:
+                        self.log.print('File {} has wrong dimensions'.format(f))
+                else:
+                    pass
+        return files_list
 
+    @staticmethod
+    def shuffle_files(files):
+        random.shuffle(files)
+        return files
 
-def run(args):
+    @staticmethod
+    def split_files(files, test_size):
+        if test_size > 0.0:
+            return train_test_split(files, test_size=test_size)
+        return files, []
 
-    # Verify that root folder exists and is not empty
-    if not os.path.isdir(args.root_dir):
-        raise MyException('Root directory "{}" does not exist'.format(args.root_dir))
-    if len(os.listdir(args.root_dir)) == 0:
-        raise MyException('Root directory "{}" is empty'.format(args.root_dir))
+    @staticmethod
+    def get_dcm_pixels(file_path):
+        dcm2numpy = Dcm2Numpy()
+        dcm2numpy.set_input_dicom_file_path(file_path)
+        dcm2numpy.set_normalize_enabled()  # To ensure true HU values
+        dcm2numpy.execute()
+        return dcm2numpy.get_output_numpy_array()
 
-    # Verify that training, validation and test collections exist and are not empty
-    if args.training is not None:
-        LOG.print('Checking collections training...')
-        check_collections(args.root_dir, args.training)
-    if args.validation is not None:
-        check_collections(args.root_dir, args.validation)
-    if args.testing is not None:
-        check_collections(args.root_dir, args.testing)
-    if args.split is not None:
-        check_collections(args.root_dir, args.split)
-        if args.split_percentage is None:
-            raise MyException('Argument --split_percentage is mandatory when choosing --split')
+    @staticmethod
+    def get_tag_pixels(file_path, shape):
+        tag2numpy = Tag2NumPy(shape)
+        tag2numpy.set_input_tag_file_path(file_path)
+        tag2numpy.execute()
+        pixels = tag2numpy.get_output_numpy_array()
+        # Note that sometimes pixels = None because of failure to reshape the pixel array
+        # to the size of the DICOM image
+        return pixels
 
-    # Create training H5
-    if args.training is not None:
-        file_list = collect_files(
-            args.root_dir, args.training, args.width, args.height)
-        file_list = shuffle_file_list(file_list)
-        create_h5_from_file_list(
-            file_list,
-            os.path.join(args.output_dir, args.output_file_name_training))
+    @staticmethod
+    def labels_ok(labels):
+        for label in [0, 1, 2, 3]:
+            if label not in labels:
+                return False
+        return len(labels) == 4
 
-    # Create validation H5
-    if args.validation is not None:
-        file_list = collect_files(
-            args.root_dir, args.validation, args.width, args.height)
-        file_list = shuffle_file_list(file_list)
-        create_h5_from_file_list(
-            file_list,
-            os.path.join(args.output_dir, args.output_file_name_validation))
+    def update_labels(self, pixels):
+        pixels[pixels == 2] = 0
+        pixels[pixels == 4] = 0
+        pixels[pixels == 11] = 0
+        pixels[pixels == 12] = 0
+        pixels[pixels == 14] = 0
+        pixels[pixels == 5] = 2
+        pixels[pixels == 7] = 3
+        labels = np.unique(pixels)
+        if self.labels_ok(labels):
+            return pixels, labels
+        return None, None
 
-    # Create test H5
-    if args.testing is not None:
-        file_list = collect_files(
-            args.root_dir, args.testing, args.width, args.height)
-        file_list = shuffle_file_list(file_list)
-        create_h5_from_file_list(
-            file_list,
-            os.path.join(args.output_dir, args.output_file_name_testing))
+    @staticmethod
+    def get_file_id(file_path):
+        items = os.path.split(file_path)
+        file_id = os.path.splitext(items[1])[0]
+        return file_id
 
-    # Create percentage split training/validation. Note that the split is done
-    # across all collections, so everything is considered to be one big data set
-    # that is split into parts.
-    # Note: the args.split_percentage refers to the percentage of observations
-    # assigned to the training set!
-    if args.split is not None:
-        file_list = collect_files(args.root_dir, args.split, args.width, args.height)
-        file_list = shuffle_file_list(file_list)
-        training_files, validation_files = split_file_list(file_list, args.split_percentage)
-        LOG.print('>>> Creating training.h5...')
-        create_h5_from_file_list(training_files, os.path.join(args.output_dir, args.output_file_name_training))
-        LOG.print('>>> Creating validation.h5...')
-        create_h5_from_file_list(validation_files, os.path.join(args.output_dir, args.output_file_name_validation))
+    def create_file(self, output_file, files):
+        with h5py.File(output_file, 'w') as h5f:
+            count = 1
+            for file_pair in files:
+                file_id = self.get_file_id(file_pair[0])
+                dcm_pixels = self.get_dcm_pixels(file_pair[0])
+                if dcm_pixels is None:
+                    self.log.print('DICOM file {} has problems with pixel data'.format(file_pair[0]))
+                    continue
+                if self.is_training:
+                    tag_pixels = self.get_tag_pixels(file_pair[1], dcm_pixels.shape)
+                    if tag_pixels is None:
+                        self.log.print('TAG file {} cannot be reshaped to right dimensions'.format(file_pair[1]))
+                        continue
+                    tag_pixels, unique_labels = self.update_labels(tag_pixels)
+                    if tag_pixels is None:
+                        self.log.print('TAG file {} has wrong labels {}'.format(file_pair[1], unique_labels))
+                        continue
+                    group = h5f.create_group('{}'.format(file_id))
+                    group.create_dataset('image', data=dcm_pixels)
+                    group.create_dataset('labels', data=tag_pixels)
+                    self.log.print('{:04d} added images and labels for file ID {}'.format(count, file_id))
+                    count += 1
+                else:
+                    group = h5f.create_group('{}'.format(file_id))
+                    group.create_dataset('images', data=dcm_pixels)
+            self.log.print('Done')
 
-
-def main():
-    global LOG
-    args = get_args()
-    os.makedirs(args.output_dir, exist_ok=False)
-    LOG = Logger(args.output_dir)
-    show_intro()
-    try:
-        run(args)
-    except MyException as e:
-        LOG.print(e)
-
-
-if __name__ == '__main__':
-    main()
+    def create_hdf5(self):
+        if self.is_training:
+            self.log.print('Collecting files for training')
+        else:
+            self.log.print('Collecting files for prediction')
+        files = self.collect_files(self.dir_path, self.rows, self.columns, self.is_training)
+        if self.is_training and self.test_size > 0.0:
+            self.log.print('Shuffling files before training/test split')
+            files = self.shuffle_files(files)
+        if self.test_size < 1.0:
+            self.log.print('Splitting files with test size of {}%'.format(int(100 * self.test_size)))
+        training_files, test_files = self.split_files(files, self.test_size)
+        self.log.print('Training files: {}'.format(len(training_files)))
+        self.log.print('Test files: {}'.format(len(test_files)))
+        self.log.print('Creating H5 training file')
+        self.create_file(self.output_files[0], training_files)
+        if len(self.output_files) == 2:
+            self.log.print('Creating H5 test file')
+            self.create_file(self.output_files[1], test_files)

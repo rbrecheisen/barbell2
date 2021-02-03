@@ -8,7 +8,7 @@
 	"patch_path": "/mnt/localscratch/maastro/Ralph/bodycomposition/training_samples",
 	"val_patch_path": "/mnt/localscratch/maastro/Ralph/bodycomposition/validation_samples",
 	"log_path": "/mnt/localscratch/maastro/Ralph/bodycomposition/logs",
-	"split": 20,
+	"test_size": 0.2,
 	"number_of_patches": 15,
 	"number_of_augmentations": 2,
 	"switch_views": "False",

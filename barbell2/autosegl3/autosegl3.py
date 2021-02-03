@@ -1,4 +1,6 @@
-import json
+import os
+
+from barbell2 import CreateHDF5
 
 
 """
@@ -31,39 +33,25 @@ For prediction, the tool has to be pointed to a directory containing only L3 ima
 
 class AutoSegL3:
 
-    def __init__(self, params=None):
-
+    def __init__(self, params):
         super(AutoSegL3, self).__init__()
+        self.params = params
 
-        if params is not None:
-            with open(params, 'r') as f:
-                self.params = json.load(f)
-        else:
-            self.params = {
-                'image_shape': (512, 512, 1),
-                'patch_shape': (512, 512, 1),
-                'output_path': '/tmp/autosegl3',
-                'number_of_patches': 15,
-                'number_of_augmentations': 2,
-                'switch_views': False,
-                'translate': False,
-                'min_bound': -200,
-                'max_bound': 200,
-                'batch_size': 1,
-                'num_steps': 100000,
-                'train_eval_step': 100,
-                'validation_eval_step': 100,
-                'save_model_step': 10000,
-                'learning_rate': 0.001,
-                'decay_steps': 2500,
-                'decay_rate': 0.5,
-                'opt_momentum': 0.9,
-                'dropout_rate': 0.05,
-                'l2_loss': 0.001,
-            }
+    @staticmethod
+    def get_output_files(dir_path, test_size):
+        output_files = list()
+        output_files.append(os.path.split(dir_path)[0] + '/training.h5')
+        if test_size > 0.0:
+            output_files.append(os.path.split(dir_path)[0] + '/test.h5')
+        return output_files
 
     def train(self, dir_path):
-        pass
+        output_files = self.get_output_files(dir_path, self.params['test_size'])
+        # creator = CreateHDF5(
+        #     dir_path,
+        #     output_files,
+        #     self.params['test_size'],
+        # )
 
     def predict(self, file_or_dir_path):
         pass
