@@ -24,7 +24,6 @@ def test_training():
     m.create_hdf5()
 
 
-
 def test_prediction():
     # Define output files
     d = '{}/data/surfdrive/projects/20210203_autosegl3/dicom'.format(os.environ['HOME'])

@@ -31,6 +31,7 @@ image is predicted you can also highlight its position within the spread of the 
 For prediction, the tool has to be pointed to a directory containing only L3 images. 
 """
 
+
 class AutoSegL3:
 
     def __init__(self, params):
@@ -38,20 +39,40 @@ class AutoSegL3:
         self.params = params
 
     @staticmethod
-    def get_output_files(dir_path, test_size):
+    def get_output_files(output_dir, test_size):
         output_files = list()
-        output_files.append(os.path.split(dir_path)[0] + '/training.h5')
+        output_files.append(os.path.join(output_dir, '/training.h5'))
         if test_size > 0.0:
-            output_files.append(os.path.split(dir_path)[0] + '/test.h5')
+            output_files.append(os.path.join(output_dir, '/test.h5'))
         return output_files
 
     def train(self, dir_path):
-        output_files = self.get_output_files(dir_path, self.params['test_size'])
-        # creator = CreateHDF5(
-        #     dir_path,
-        #     output_files,
-        #     self.params['test_size'],
-        # )
+
+        rows = self.params['image_shape'][0]
+        columns = self.params['image_shape'][1]
+        test_size = self.params['test_size']
+        is_training = True
+        log_dir = self.params['log_dir']
+        output_dir = self.params['output_dir']
+
+        output_files = self.get_output_files(output_dir, self.params['test_size'])
+
+        creator = CreateHDF5(
+            dir_path,
+            output_files,
+            rows,
+            columns,
+            test_size,
+            is_training,
+            log_dir,
+        )
+
+        training_file, test_file = creator.create_hdf5()
+
+        # TODO: check if test_file is None
+        return training_file, test_file
+
+
 
     def predict(self, file_or_dir_path):
         pass
