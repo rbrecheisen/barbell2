@@ -30,15 +30,11 @@ class MyTestArguments(SimpleNamespace):
 
 class Logger(object):
 
-    def __init__(self, to_file=True, to_dir=None):
+    def __init__(self, file_name_prefix='log_', to_dir='.'):
         self.f = None
-        if to_file:
-            now = datetime.datetime.now()
-            file_name = 'log_{}.txt'.format(now.strftime('%Y%m%d_%H%M%S'))
-            if to_dir:
-                self.f = open(os.path.join(to_dir, file_name), 'w')
-            else:
-                self.f = open(file_name, 'w')
+        now = datetime.datetime.now()
+        file_name = '{}_{}.txt'.format(file_name_prefix, now.strftime('%Y%m%d_%H%M%S'))
+        self.f = open(os.path.join(to_dir, file_name), 'w')
 
     def print(self, message):
         now = datetime.datetime.now()
