@@ -10,7 +10,10 @@ L3 images. The tool will then produce a mask for each L3 image that outlines the
 fat regions.
 
 For training, if default parameters are used, all the data manager has to do is point the tool to a directory 
-containing L3 images and corresponding TAG files. 
+containing L3 images and corresponding TAG files. From this directory, an HDF5 file will be generated. During
+this process the images and TAG files will be checked for certain characteristics like a common dimension of
+512 by 512 pixels, pixels containing normalized Hounsfield units, etc. Any images that do pass this initial 
+quality check will be reported in a text file. 
 
 For testing the training procedure, the tool also has to be pointed to a directory containing both L3 images 
 and TAG files. However, only the L3 images will be used for generating segmentations. The TAG files will be used 
@@ -26,45 +29,12 @@ image is predicted you can also highlight its position within the spread of the 
 For prediction, the tool has to be pointed to a directory containing only L3 images. 
 """
 
-# {
-# 	"image_shape": [512, 512, 1],
-# 	"patch_shape": [512, 512, 1],
-# 	"data_path_train": "/mnt/localscratch/maastro/Ralph/bodycomposition/training.h5",
-# 	"data_path_val": "/mnt/localscratch/maastro/Ralph/bodycomposition/validation.h5",
-# 	"data_path_test": "/mnt/localscratch/maastro/Ralph/bodycomposition/testing.h5",
-#
-# 	"patch_path": "/mnt/localscratch/maastro/Ralph/bodycomposition/training_samples",
-# 	"val_patch_path": "/mnt/localscratch/maastro/Ralph/bodycomposition/validation_samples",
-# 	"log_path": "/mnt/localscratch/maastro/Ralph/bodycomposition/logs",
-# 	"split": 20,
-# 	"number_of_patches": 15,
-# 	"number_of_augmentations": 2,
-# 	"switch_views": "False",
-# 	"translate": "False",
-#
-# 	"min_bound": -200,
-# 	"max_bound": 200,
-# 	"num_classes": 4,
-# 	"batch_size": 1,
-# 	"num_steps": 100000,
-# 	"train_eval_step": 100,
-# 	"val_eval_step": 100,
-# 	"save_model_step": 10000,
-#
-# 	"learning_rate": 0.001,
-# 	"decay_steps": 2500,
-# 	"decay_rate": 0.5,
-# 	"opt_momentum": 0.9,
-# 	"dropout_rate": 0.05,
-# 	"l2_loss": 0.001
-#
-# }
-
-
 class AutoSegL3:
 
     def __init__(self, params=None):
+
         super(AutoSegL3, self).__init__()
+
         if params is not None:
             with open(params, 'r') as f:
                 self.params = json.load(f)
@@ -72,9 +42,11 @@ class AutoSegL3:
             self.params = {
                 'image_shape': (512, 512, 1),
                 'patch_shape': (512, 512, 1),
-                'log_path': '.',
+                'output_path': '/tmp/autosegl3',
                 'number_of_patches': 15,
                 'number_of_augmentations': 2,
+                'switch_views': False,
+                'translate': False,
                 'min_bound': -200,
                 'max_bound': 200,
                 'batch_size': 1,
@@ -91,24 +63,9 @@ class AutoSegL3:
             }
 
     def train(self, dir_path):
-        """
-        Usage: Train model on training data in <dir_path>. Training data should consist of pairs of L3 images with
-        corresponding TAG files containing the labels. Upon loading the images a number of quality checks
-        should be performed such as:
-
-            - Checking for consistent dimensions
-            - Matching image/TAG files
-            - Normalized (original) Hounsfield unit data
-
-        :param dir_path: Directory path to CT images and TAG files.
-        """
         pass
 
     def predict(self, file_or_dir_path):
-        """
-        Usage: predicts labels for given CT image (file) or directory of CT images (directory)
-        :param file_or_dir_path: File or directory to CT image(s)
-        """
         pass
 
 
