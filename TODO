@@ -1,19 +1,15 @@
 TODO
 
-castorclient
+castorclient.py
 
-createh5
+createh5.py
 
-dicomconverttoraw
+dicomexplorer.py
 
-dicomexplorer
+x Add function check_pixels() that tries to load pixels using pydicom. If this fails an error is reported for that file
+x Add function show_header(), it's more intuitive than dump_file
+x Add git commit to deploy.sh
 
-x add function check_pixels() that tries to load pixels using pydicom. if this fails an error is reported for that file
-x add function show_header(), it's more intuitive than dump_file
-x add git commit to deploy.sh
+autosegl3.py
 
-autosegl3
-
-- implement first test
-- create wrappers for leroy's code
-- implement tensorflow simulation mode (or whatever works on Macbook)
+- Get first deployment working, i.e., install barbell2 package and run model training
