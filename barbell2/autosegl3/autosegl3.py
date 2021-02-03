@@ -12,7 +12,7 @@ class AutoSegL3:
             self.params = {
                 'image_shape': (512, 512, 1),
                 'patch_shape': (512, 512, 1),
-                'log_path': '.',
+                'output_path': '/tmp/autosegl3',
                 'number_of_patches': 15,
                 'number_of_augmentations': 2,
                 'min_bound': -200,
