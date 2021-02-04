@@ -1,6 +1,6 @@
 import os
 
-from barbell2 import AutoSegL3
+from barbell2.autosegl3 import AutoSegL3
 
 
 def test_autosegl3():

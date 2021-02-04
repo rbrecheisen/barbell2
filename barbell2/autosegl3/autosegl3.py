@@ -1,7 +1,7 @@
 import os
 
-from barbell2 import CreateHDF5
-from barbell2 import AutoSegL3CNN
+from barbell2.createh5 import CreateHDF5
+from barbell2.autosegl3 import AutoSegL3CNN
 
 
 """
