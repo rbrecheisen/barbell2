@@ -12,7 +12,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['pytest', 'cmd2', 'gnureadline', 'pydicom', 'pandas', 'numpy', 'SimpleITK', 'h5py', 'tensorflow']
+requirements = ['pytest', 'pydicom', 'pandas', 'numpy', 'SimpleITK', 'h5py', 'tensorflow']
 
 setup_requirements = []
 
@@ -44,8 +44,6 @@ setup(
     setup_requires=setup_requirements,
     entry_points={
         'console_scripts': [
-            'createh5=barbell2.createh5.createh5:main',
-            'dicomexplorer=barbell2.dicomexplorer.dicomexplorer:main',
         ],
     },
     test_suite='tests',

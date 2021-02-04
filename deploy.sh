@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export PACKAGE=barbell2
+
 # Check if Twine is installed for uploading the package
 which twine
 if [ "$?" == "1" ]; then
@@ -50,9 +52,9 @@ if [ "${line}" != "yes" ]; then
   exit 0
 fi
 
-# Update version numnber in barbell2.__init__
-sed -i ".bak" "s/${OLD_VERSION}/${VERSION}/g" barbell2/__init__.py
-rm barbell2/__init__.py.bak
+# Update version numnber in package __init__ file
+sed -i ".bak" "s/${OLD_VERSION}/${VERSION}/g" ${PACKAGE}/__init__.py
+rm ${PACKAGE}/__init__.py.bak
 
 # Check git status
 git status

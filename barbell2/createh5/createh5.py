@@ -14,23 +14,18 @@ from sklearn.model_selection import train_test_split
 class CreateHDF5:
 
     def __init__(self, dir_path, output_files, rows, columns, test_size=0.0, is_training=True, log_dir='.'):
-
         self.dir_path = dir_path
         self.is_training = is_training
-
         if isinstance(output_files, str):
             self.output_files = [output_files]
         else:
             self.output_files = output_files
-
         if not self.is_training:
             if len(self.output_files) != 1:
                 raise RuntimeError('For prediction provide only one output file')
-
         self.rows = rows
         self.columns = columns
         self.test_size = test_size
-
         os.makedirs(log_dir, exist_ok=True)
         self.log = Logger(file_name_prefix='createh5_', to_dir=log_dir)
 
@@ -49,10 +44,8 @@ class CreateHDF5:
             return dcm_file + '.tag'
 
     def collect_files(self, dir_path, rows, columns, is_training):
-
         files_list = []
         count = 1
-
         for root, dirs, files in os.walk(dir_path):
             for f in files:
                 f = os.path.join(root, f)
