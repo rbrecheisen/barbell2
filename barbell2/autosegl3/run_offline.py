@@ -63,7 +63,7 @@ def dice_loss(y_true, y_pred):
 
 
 def early_stopping(loss_list, min_delta=0.005, patience=20):
-    """
+    """1
 
     Parameters
     ----------
@@ -212,61 +212,62 @@ def main():
     #                                                             staircase=True)
     # optimizer_function = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
 
-    # Define model
-    # unet
-    model = models.unet(params,
-                        params.dict['num_classes'],
-                        optimizer=optimizer_function,
-                        loss=loss_function)
-
-    # Define evaluation metrics
-    train_loss = tf.keras.metrics.Mean(name='train_loss')
-    train_accuracy = DiceMetric()
-    validation_loss = tf.keras.metrics.Mean(name='validation_loss')
-    validation_accuracy = DiceMetric()
-
-    # Create variables for various paths used for storing training information
-    current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-    if not os.path.exists(params.dict['log_path']):
-        os.mkdir(params.dict['log_path'])
-
-    train_log_dir = params.dict['log_path'] + '/gradient_tape/' + current_time + '/train'
-    val_log_dir = params.dict['log_path'] + '/gradient_tape/' + current_time + '/val'
-    saved_model_path = params.dict['log_path'] + '/gradient_tape/' + current_time + '/saved_models/'
-    saved_weights_path = params.dict['log_path'] + '/gradient_tape/' + current_time + '/saved_weights/'
-
-    train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-    val_summary_writer = tf.summary.create_file_writer(val_log_dir)
-
-    os.mkdir(saved_model_path)
-    os.mkdir(saved_weights_path)
-    # Ralph: this copy statement doesn't work because it assumes that params.dict['log_path'] is a relative path whereas
-    # in fact, I set it to an explicit path in the /mnt/localscratch folder. Even as a relative path, it does not seem
-    # correct to use os.getcwd() in the destination
-    # copyfile(os.getcwd() + '/params.json',
-    #         os.getcwd() + '/' + params.dict['log_path'] + '/gradient_tape/' + current_time + '/params.json')
-    copyfile(os.getcwd() + '/params.json',
-             params.dict['log_path'] + '/gradient_tape/' + current_time + '/params.json')
-
-    # Load training and validation data
-    images_t, labels_t, names_t = utils.load_dataset(params.dict['data_path_train'], params)
-    images_v, labels_v, names_v = utils.load_dataset(params.dict['data_path_val'], params)
-
-    # col_idx = np.random.RandomState(seed=42).permutation(images.shape[2])
-    # images = images[:, :, col_idx]
-    # labels = labels[:, :, col_idx]
-
-    # index = int(np.shape(images)[2] * 0.8)
-    # images_t = images[:, :, :index]
-    # labels_t = labels[:, :, :index]
-    # images_v = images[:, :, index:]
-    # labels_v = labels[:, :, index:]
-
-    print('Training set size: ', np.shape(images_t)[2])
-    print('Validation set size: ', np.shape(images_v)[2])
-
-    # Start training loop
     for iteration in range(0, params.dict['num_steps'] + 1):
+
+        # Define model
+        # unet1
+        model = models.unet(params,
+                            params.dict['num_classes'],
+                            optimizer=optimizer_function,
+                            loss=loss_function)
+
+        # Define evaluation metrics
+        train_loss = tf.keras.metrics.Mean(name='train_loss')
+        train_accuracy = DiceMetric()
+        validation_loss = tf.keras.metrics.Mean(name='validation_loss')
+        validation_accuracy = DiceMetric()
+
+        # Create variables for various paths used for storing training information
+        current_time = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+        if not os.path.exists(params.dict['log_path']):
+            os.mkdir(params.dict['log_path'])
+
+        train_log_dir = params.dict['log_path'] + '/gradient_tape/' + current_time + '/train'
+        val_log_dir = params.dict['log_path'] + '/gradient_tape/' + current_time + '/val'
+        saved_model_path = params.dict['log_path'] + '/gradient_tape/' + current_time + '/saved_models/'
+        saved_weights_path = params.dict['log_path'] + '/gradient_tape/' + current_time + '/saved_weights/'
+
+        train_summary_writer = tf.summary.create_file_writer(train_log_dir)
+        val_summary_writer = tf.summary.create_file_writer(val_log_dir)
+
+        os.mkdir(saved_model_path)
+        os.mkdir(saved_weights_path)
+        # Ralph: this copy statement doesn't work because it assumes that params.dict['log_path'] is a relative path whereas
+        # in fact, I set it to an explicit path in the /mnt/localscratch folder. Even as a relative path, it does not seem
+        # correct to use os.getcwd() in the destination
+        # copyfile(os.getcwd() + '/params.json',
+        #         os.getcwd() + '/' + params.dict['log_path'] + '/gradient_tape/' + current_time + '/params.json')
+        copyfile(os.getcwd() + '/params.json',
+                 params.dict['log_path'] + '/gradient_tape/' + current_time + '/params.json')
+
+        # Load training and validation data
+        images_t, labels_t, names_t = utils.load_dataset(params.dict['data_path_train'], params)
+        images_v, labels_v, names_v = utils.load_dataset(params.dict['data_path_val'], params)
+
+        # col_idx = np.random.RandomState(seed=42).permutation(images.shape[2])
+        # images = images[:, :, col_idx]
+        # labels = labels[:, :, col_idx]
+
+        # index = int(np.shape(images)[2] * 0.8)
+        # images_t = images[:, :, :index]
+        # labels_t = labels[:, :, :index]
+        # images_v = images[:, :, index:]
+        # labels_v = labels[:, :, index:]
+
+        print('Training set size: ', np.shape(images_t)[2])
+        print('Validation set size: ', np.shape(images_v)[2])
+
+        # Start training loop
         _start_graph_tensorflow()
 
         ct_batch, gt_batch = get_batch(images_t, labels_t, params)

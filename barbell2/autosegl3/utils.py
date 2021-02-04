@@ -2,85 +2,24 @@ import numpy as np
 import h5py
 import os
 import nibabel as nib
-import json
 import random
 import cv2
 import copy
-import pydicom
-
-from barbell2.lib.dicom import Dcm2Numpy, Tag2NumPy
-
-
-class Params:
-    def __init__(self, json_path):
-        self.update(json_path)
-
-    def save(self, json_path):
-        """"
-        Save dict to json file
-
-        Parameters
-        ----------
-        json_path : string
-            Path to save location
-        """
-        with open(json_path, 'w') as f:
-            json.dump(self.__dict__, f, indent=4)
-
-    def update(self, json_path):
-        """
-        Load parameters from json file
-
-        Parameters
-        ----------
-        json_path : string
-            Path to json file
-        """
-        with open(json_path) as f:
-            params = json.load(f)
-            self.__dict__.update(params)
-
-    @property
-    def dict(self):
-        """"
-        Give dict-like access to Params instance by: 'params.dict['learning_rate']'
-        """
-        return self.__dict__
 
 
 def load_dataset(fname, params, norm=True):
     with h5py.File(fname, "r") as f:
-
         a_group_key2 = list(f.keys())
-        # TODO: Changed images dtype
         images = np.zeros([512, 512, len(a_group_key2)], dtype=np.float32)
         labels = np.zeros([512, 512, len(a_group_key2)]).astype(np.int16)
         for i, name in enumerate(a_group_key2):
             image = f[str(name)]['images'][()]
             label = f[str(name)]['labels'][()]
-            # TODO: Added 2 lines for labels + dtype image
-            # Ralph: removed these lines because this should be handled in createh5.py
-            # label[label == 5] = 2
-            # label[label == 7] = 3
-            # TODO: Added normalization here
             if norm:
-                image = normalize(image[:, :], 'True', params.dict['min_bound'], params.dict['max_bound'])
+                image = normalize(image[:, :], 'True', params['min_bound'], params['max_bound'])
             images[:, :, i] = image.astype(np.float32)
             labels[:, :, i] = label
-    print('>>> Unique labels in {}: {}'.format(fname, np.unique(labels)))
     return images, labels, a_group_key2
-
-
-def load_l3s_and_tags(dir_path, params, norm=True, shuffle=True):
-    """
-    Loads dataset as collection of L3 images and TAG files.
-    :param dir_path: Path to directory where L3 images and TAG files are located
-    :param params:
-    :param norm: Whether to normalize the images
-    :param shuffle: Whether to shuffle the images and masks
-    :return: Tuple of images, masks and list of file paths
-    """
-    pass
 
 
 def load_samples(sample_txt_file, seed=42):
@@ -192,16 +131,16 @@ def normalize(img, bound, min_bound, max_bound):
       #  mx = np.percentile(img, 100 - norm)
        # a = (img - mn)
         #b = (mx - mn)
-        #img = np.divide(a, b, np.zeros_like(a), where=b != 0)   
+        #img = np.divide(a, b, np.zeros_like(a), where=b != 0)
     #print(np.min(img))
     #print(np.max(img))
     c = (img - np.min(img))
     d = (np.max(img) - np.min(img))
     img = np.divide(c, d, np.zeros_like(c), where=d != 0)
 
-   
+
     # img += np.abs(img.min())
-    # img *= 1/img.max()    
+    # img *= 1/img.max()
     return img
 
 

@@ -6,19 +6,20 @@ from tensorflow.keras.layers import Conv2D, Input, MaxPooling2D, Dropout, \
 
 def conv_block(inputs, num_features, kernel_size, params):
     x = Conv2D(num_features, kernel_size, activation=None, kernel_initializer='he_normal',
-               padding='same', kernel_regularizer=tf.keras.regularizers.l2(l=params.l2_loss))(inputs)
+               padding='same', kernel_regularizer=tf.keras.regularizers.l2(l=params['l2_loss']))(inputs)
     x = PReLU(shared_axes=[1, 2])(x)
     x = BatchNormalization()(x)
     x = Dropout(params.dropout_rate)(x)
     x = Conv2D(num_features, kernel_size, activation=None, kernel_initializer='he_normal',
-               padding='same', kernel_regularizer=tf.keras.regularizers.l2(l=params.l2_loss))(x)
+               padding='same', kernel_regularizer=tf.keras.regularizers.l2(l=params['l2_loss']))(x)
     x = PReLU(shared_axes=[1, 2])(x)
     x = BatchNormalization()(x)
     return x
 
 
-def unet(params, num_classes, optimizer, loss):
-    input_ct = Input((None, None, params.dict['patch_shape'][-1]),
+def unet(params, optimizer, loss):
+    num_classes = params['num_classes']
+    input_ct = Input((None, None, params['patch_shape'][-1]),
                      name='CT_input')
     x_1 = conv_block(input_ct, 32, (3, 3), params)
     p_1 = MaxPooling2D((2, 2))(x_1)

@@ -139,7 +139,6 @@ class CreateHDF5:
         return file_id
 
     def create_file(self, output_file, files):
-
         with h5py.File(output_file, 'w') as h5f:
             count = 1
             for file_pair in files:
@@ -168,28 +167,21 @@ class CreateHDF5:
             self.log.print('Done')
 
     def create_hdf5(self):
-
         if self.is_training:
             self.log.print('Collecting files for training')
         else:
             self.log.print('Collecting files for prediction')
-
         files = self.collect_files(self.dir_path, self.rows, self.columns, self.is_training)
-
         if self.is_training and self.test_size > 0.0:
             self.log.print('Shuffling files before training/test split')
             files = self.shuffle_files(files)
-
         if self.test_size < 1.0:
             self.log.print('Splitting files with test size of {}%'.format(int(100 * self.test_size)))
         training_files, test_files = self.split_files(files, self.test_size)
-
         self.log.print('Training files: {}'.format(len(training_files)))
         self.log.print('Test files: {}'.format(len(test_files)))
         self.log.print('Creating H5 training file')
-
         self.create_file(self.output_files[0], training_files)
-
         if len(self.output_files) == 2:
             self.log.print('Creating H5 test file')
             self.create_file(self.output_files[1], test_files)

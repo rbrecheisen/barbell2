@@ -1,6 +1,7 @@
 import os
 
 from barbell2 import CreateHDF5
+from barbell2 import AutoSegL3CNN
 
 
 """
@@ -41,45 +42,34 @@ class AutoSegL3:
     @staticmethod
     def get_output_files(output_dir, test_size):
         output_files = list()
-        output_files.append(os.path.join(output_dir, '/training.h5'))
+        output_files.append(os.path.join(output_dir, 'training.h5'))
         if test_size > 0.0:
-            output_files.append(os.path.join(output_dir, '/test.h5'))
+            output_files.append(os.path.join(output_dir, 'test.h5'))
         return output_files
 
     def train(self, dir_path):
-
-        rows = self.params['image_shape'][0]
-        columns = self.params['image_shape'][1]
-        test_size = self.params['test_size']
-        is_training = True
-        log_dir = self.params['log_dir']
         output_dir = self.params['output_dir']
-
+        os.makedirs(output_dir, exist_ok=True)
         output_files = self.get_output_files(output_dir, self.params['test_size'])
-
         creator = CreateHDF5(
-            dir_path,
-            output_files,
-            rows,
-            columns,
-            test_size,
-            is_training,
-            log_dir,
+            dir_path=dir_path,
+            output_files=output_files,
+            rows=self.params['image_shape'][0],
+            columns=self.params['image_shape'][1],
+            test_size=self.params['test_size'],
+            is_training=True,
+            log_dir=self.params['log_dir'],
         )
-
         training_file, test_file = creator.create_hdf5()
-
-        # TODO: check if test_file is None
-        return training_file, test_file
-
-
+        network = AutoSegL3CNN(training_file, test_file, self.params)
+        network.run()
 
     def predict(self, file_or_dir_path):
         pass
 
 
 def main():
-    AutoSegL3()
+    pass
 
 
 if __name__ == '__main__':
