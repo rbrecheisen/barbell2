@@ -1,34 +1,67 @@
 import os
+import pytest
 
-from barbell2 import CreateHDF5
+from barbell2.createh5 import CreateH5
 
-
-def test_training_test():
-    # Define output files
-    d1 = '{}/data/surfdrive/projects/20210203_autosegl3/dicom_and_tag'.format(os.environ['HOME'])
-    f1 = '{}/Desktop/training.h5'.format(os.environ['HOME'])
-    f2 = '{}/Desktop/test.h5'.format(os.environ['HOME'])
-    log_dir = '{}/Desktop/logs_training_test'.format(os.environ['HOME'])
-    # Create HDF5 files
-    m = CreateHDF5(d1, [f1, f2], 512, 512, 0.8, is_training=True, log_dir=log_dir)
-    m.create_hdf5()
+base_dir = '{}/data/surfdrive/projects/20210203_autosegl3'.format(os.environ['HOME'])
 
 
-def test_training():
-    # Define output files
-    d1 = '{}/data/surfdrive/projects/20210203_autosegl3/dicom_and_tag'.format(os.environ['HOME'])
-    f1 = '{}/Desktop/training.h5'.format(os.environ['HOME'])
-    log_dir = '{}/Desktop/logs_training'.format(os.environ['HOME'])
-    # Create HDF5 files
-    m = CreateHDF5(d1, f1, 512, 512, is_training=True, log_dir=log_dir)
-    m.create_hdf5()
+def clean_up():
+    if os.path.isfile('train.h5'):
+        os.remove('train.h5')
+    if os.path.isfile('test.h5'):
+        os.remove('test.h5')
+    if os.path.isfile('predict.h5'):
+        os.remove('predict.h5')
 
 
-def test_prediction():
-    # Define output files
-    d = '{}/data/surfdrive/projects/20210203_autosegl3/dicom'.format(os.environ['HOME'])
-    f = '{}/Desktop/prediction.h5'.format(os.environ['HOME'])
-    log_dir = '{}/Desktop/logs_prediction'.format(os.environ['HOME'])
-    # Create HDF5 file
-    m = CreateHDF5(d, f, 512, 512, is_training=False, log_dir=log_dir)
-    m.create_hdf5()
+def test_train_test():
+    """ Both DICOM and TAG files should be collected and the data split up in a training and test set. """
+    clean_up()
+    d = os.path.join(base_dir, 'dicom_and_tag')
+    args = {
+        'data_dir': d,
+        'rows': 512, 'columns': 512,
+        'type': 'train',
+        'test_size': 0.2,
+        'log_dir': '.',
+    }
+    x = CreateH5(args)
+    x.execute()
+    assert os.path.isfile('train.h5')
+    assert os.path.isfile('test.h5')
+    clean_up()
+
+
+def test_train():
+    """ Both DICOM and TAG files should be collected but all data used for training. """
+    clean_up()
+    d = os.path.join(base_dir, 'dicom_and_tag')
+    args = {
+        'data_dir': d,
+        'rows': 512, 'columns': 512,
+        'type': 'train',
+        'test_size': 0.0,
+        'log_dir': '.',
+    }
+    x = CreateH5(args)
+    x.execute()
+    assert os.path.isfile('train.h5')
+    clean_up()
+
+
+def test_predict():
+    """ Only DICOM files should be collected for prediction of labels. """
+    clean_up()
+    d = os.path.join(base_dir, 'dicom')
+    args = {
+        'data_dir': d,
+        'rows': 512, 'columns': 512,
+        'type': 'predict',
+        'test_size': 0.0,
+        'log_dir': '.',
+    }
+    x = CreateH5(args)
+    x.execute()
+    assert os.path.isfile('predict.h5')
+    clean_up()
