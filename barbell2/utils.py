@@ -32,8 +32,9 @@ class MyTestArguments(SimpleNamespace):
 
 class Logger(object):
 
-    def __init__(self, prefix='log', to_dir='.'):
+    def __init__(self, prefix='log', to_dir='.', timestamp=True):
         self.f = None
+        self.timestamp = timestamp
         os.makedirs(to_dir, exist_ok=True)
         now = datetime.datetime.now()
         if not prefix.endswith('_'):
@@ -43,7 +44,10 @@ class Logger(object):
 
     def print(self, message):
         now = datetime.datetime.now()
-        message = '[' + now.strftime('%Y-%m-%d %H:%M:%S.%f') + '] ' + str(message)
+        if self.timestamp:
+            message = '[' + now.strftime('%Y-%m-%d %H:%M:%S.%f') + '] ' + str(message)
+        else:
+            message = str(message)
         print(message)
         if self.f:
             self.f.write(message + '\n')
