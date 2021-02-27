@@ -39,7 +39,7 @@ class Logger(object):
         now = datetime.datetime.now()
         if not prefix.endswith('_'):
             prefix = prefix + '_'
-        file_name = '{}{}.txt'.format(prefix, now.strftime('%Y%m%d_%H%M%S'))
+        file_name = '{}{}.txt'.format(prefix, now.strftime('%Y%m%d%H%M%S'))
         self.f = open(os.path.join(to_dir, file_name), 'w')
 
     def print(self, message):
