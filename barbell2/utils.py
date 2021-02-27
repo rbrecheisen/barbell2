@@ -52,8 +52,11 @@ class Logger(object):
         if self.f:
             self.f.write(message + '\n')
 
-    def __del__(self):
+    def close(self):
         self.f.close()
+
+    def __del__(self):
+        self.close()
 
 
 def current_time_millis():
