@@ -64,6 +64,17 @@ class CastorClient:
             json.dump(fields, open('cache/fields_{}.json'.format(study_id), 'w'))
             return fields
 
+    @staticmethod
+    def get_field(name, fields):
+        for f in fields:
+            if f['field_variable_name'] == name:
+                return f
+        return None
+
+    def get_field_id(self, name, fields):
+        f = self.get_field(name, fields)
+        return f['id']
+
     def get_records(self, study_id, use_cache=True, verbose=False):
         if use_cache and os.path.isfile('cache/records_{}.json'.format(study_id)):
             records = json.load(open('cache/records_{}.json'.format(study_id), 'r'))
