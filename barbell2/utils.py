@@ -64,11 +64,11 @@ def current_time_secs():
     return int(round(current_time_millis() / 1000.0))
 
 
-def elapsed_in_millis(start_time_millis):
+def elapsed_millis(start_time_millis):
     return current_time_millis() - start_time_millis
 
 
-def elapsed_in_secs(start_time_secs):
+def elapsed_secs(start_time_secs):
     return current_time_secs() - start_time_secs
 
 
