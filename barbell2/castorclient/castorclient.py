@@ -3,6 +3,7 @@ import json
 
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
+from barbell2.utils import Logger
 
 
 class CastorClient:
@@ -18,6 +19,7 @@ class CastorClient:
         self.token_url = self.base_url + '/oauth/token'
         self.api_url = self.base_url + '/api'
         self.session = self.create_session(client_id, client_secret, self.token_url)
+        self.logger = Logger(prefix='log_castorclient')
 
     @staticmethod
     def create_session(client_id, client_secret, token_url):
@@ -46,9 +48,11 @@ class CastorClient:
 
     def get_fields(self, study_id, use_cache=True, verbose=False):
         if use_cache and os.path.isfile('cache/fields_{}.json'.format(study_id)):
+            self.logger.print('Loading fields from cache/fields_{}'.format(study_id))
             fields = json.load(open('cache/fields_{}.json'.format(study_id), 'r'))
             return fields
         else:
+            self.logger.print('Loading fields for study {} from Castor'.format(study_id))
             url = self.api_url + '/study/{}/field'.format(study_id)
             response = self.session.get(url).json()
             page_count = response['page_count']
@@ -59,7 +63,7 @@ class CastorClient:
                 for field in response['_embedded']['fields']:
                     fields.append(field)
                     if verbose:
-                        print(field['id'])
+                        self.logger.print(field['id'])
             os.makedirs('cache', exist_ok=True)
             json.dump(fields, open('cache/fields_{}.json'.format(study_id), 'w'))
             return fields
@@ -77,9 +81,11 @@ class CastorClient:
 
     def get_records(self, study_id, use_cache=True, verbose=False):
         if use_cache and os.path.isfile('cache/records_{}.json'.format(study_id)):
+            self.logger.print('Loading records from cache/records_{}.json'.format(study_id))
             records = json.load(open('cache/records_{}.json'.format(study_id), 'r'))
             return records
         else:
+            self.logger.print('Loading records for study {} from Castor'.format(study_id))
             url = self.api_url + '/study/{}/record'.format(study_id)
             response = self.session.get(url).json()
             page_count = response['page_count']
@@ -91,7 +97,7 @@ class CastorClient:
                     if not record['id'].startswith('ARCHIVED'):
                         records.append(record)
                         if verbose:
-                            print(record['id'])
+                            self.logger.print(record['id'])
             os.makedirs('cache', exist_ok=True)
             json.dump(records, open('cache/records_{}.json'.format(study_id), 'w'))
             return records
