@@ -39,7 +39,7 @@ class Logger(object):
         now = datetime.datetime.now()
         if not prefix.endswith('_'):
             prefix = prefix + '_'
-        file_name = '{}{}.txt'.format(prefix, now.strftime('%Y%m%d_%H%M%S'))
+        file_name = '{}{}.txt'.format(prefix, now.strftime('%Y%m%d%H%M%S'))
         self.f = open(os.path.join(to_dir, file_name), 'w')
 
     def print(self, message):
@@ -52,8 +52,11 @@ class Logger(object):
         if self.f:
             self.f.write(message + '\n')
 
-    def __del__(self):
+    def close(self):
         self.f.close()
+
+    def __del__(self):
+        self.close()
 
 
 def current_time_millis():
@@ -64,11 +67,11 @@ def current_time_secs():
     return int(round(current_time_millis() / 1000.0))
 
 
-def elapsed_in_millis(start_time_millis):
+def elapsed_millis(start_time_millis):
     return current_time_millis() - start_time_millis
 
 
-def elapsed_in_secs(start_time_secs):
+def elapsed_secs(start_time_secs):
     return current_time_secs() - start_time_secs
 
 
