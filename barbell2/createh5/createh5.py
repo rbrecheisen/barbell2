@@ -123,9 +123,9 @@ class CreateH5:
 
     @staticmethod
     def get_file_id(file_path):
-        items = os.path.split(file_path)
-        file_id = os.path.splitext(items[1])[0]
-        return file_id
+        # Do not use original file path because the forward slashes tell h5py to create nested groups!!!
+        x = '_'.join(file_path.split(os.path.sep))[1:]
+        return x
 
     def create_file(self, files, output_file, is_train):
         with h5py.File(output_file, 'w') as h5f:
@@ -146,7 +146,7 @@ class CreateH5:
                         self.logger.print('TAG file {} has wrong labels {}'.format(file_pair[1], unique_labels))
                         continue
                     group = h5f.create_group('{}'.format(file_id))
-                    group.create_dataset('image', data=dcm_pixels)
+                    group.create_dataset('images', data=dcm_pixels)
                     group.create_dataset('labels', data=tag_pixels)
                     self.logger.print('{:04d} added images and labels for file ID {}'.format(count, file_id))
                     count += 1
@@ -171,15 +171,16 @@ class CreateH5:
         self.logger.print('Training files: {}'.format(len(training_files)))
         if is_train and self.args.test_size > 0.0:
             self.logger.print('Test files: {}'.format(len(test_files)))
+        os.makedirs(self.args.output_dir, exist_ok=True)
         if is_train and self.args.test_size > 0.0:
             self.logger.print('Creating H5 file for testing')
-            self.create_file(test_files, 'test.h5', is_train)
+            self.create_file(test_files, os.path.join(self.args.output_dir, 'test.h5'), is_train)
         if is_train:
             self.logger.print('Creating H5 file for training')
-            self.create_file(training_files, 'train.h5', is_train)
+            self.create_file(training_files, os.path.join(self.args.output_dir, 'train.h5'), is_train)
         else:
             self.logger.print('Creating H5 file for prediction')
-            self.create_file(training_files, 'predict.h5', is_train)
+            self.create_file(training_files, os.path.join(self.args.output_dir, 'predict.h5'), is_train)
         self.logger.print('Done')
 
 
@@ -188,6 +189,11 @@ def main():
     parser.add_argument(
         'data_dir',
         help='Directory containing DICOM and (optionally) TAG files',
+    )
+    parser.add_argument(
+        '--output_dir',
+        help='Directory where to write output files',
+        default='.',
     )
     parser.add_argument(
         '--rows',
