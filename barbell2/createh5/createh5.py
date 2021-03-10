@@ -8,7 +8,7 @@ import numpy as np
 from types import SimpleNamespace
 
 from barbell2.utils import Logger
-from barbell2.lib.dicom import is_dicom
+from barbell2.lib.dicom import is_dicom_file
 from barbell2.lib.dicom import Dcm2Numpy, Tag2NumPy
 
 from sklearn.model_selection import train_test_split
@@ -44,7 +44,7 @@ class CreateH5:
         for root, dirs, files in os.walk(data_dir):
             for f in files:
                 f = os.path.join(root, f)
-                if is_dicom(f):
+                if is_dicom_file(f):
                     if self.has_dimensions(f, rows, columns):
                         if is_train:
                             # Try to get the TAG file path. If we can't find it, try not

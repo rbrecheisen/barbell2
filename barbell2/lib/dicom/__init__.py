@@ -8,8 +8,10 @@ from .tag2dcm import Tag2Dcm
 from .tag2nifti import Tag2Nifti
 from .tag2numpy import Tag2NumPy
 
+from pydicom._dicom_dict import DicomDictionary
 
-def is_dicom(file_path):
+
+def is_dicom_file(file_path):
     if not os.path.isfile(file_path):
         return False
     if file_path.startswith('._'):
@@ -21,5 +23,16 @@ def is_dicom(file_path):
         return False
 
 
-def is_tag(file_path):
+def is_tag_file(file_path):
     return file_path.endswith('.tag') and not file_path.startswith('._')
+
+
+def tag_for_name(name):
+    for key, value in DicomDictionary.items():
+        if name == value[4]:
+            return hex(int(key))
+    return None
+
+
+def get_dictionary_items():
+    return DicomDictionary.items()

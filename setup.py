@@ -44,6 +44,7 @@ setup(
     setup_requires=setup_requirements,
     entry_points={
         'console_scripts': [
+            'dicomexplorer=barbell2.dicomexplorer.dicomexplorer:main',
         ],
     },
     test_suite='tests',

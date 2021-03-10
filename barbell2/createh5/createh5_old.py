@@ -5,7 +5,7 @@ import pydicom
 import numpy as np
 
 from barbell2.utils import Logger
-from barbell2.lib.dicom import is_dicom
+from barbell2.lib.dicom import is_dicom_file
 from barbell2.lib.dicom import Dcm2Numpy, Tag2NumPy
 
 from sklearn.model_selection import train_test_split
@@ -49,7 +49,7 @@ class CreateHDF5:
         for root, dirs, files in os.walk(dir_path):
             for f in files:
                 f = os.path.join(root, f)
-                if is_dicom(f):
+                if is_dicom_file(f):
                     if self.has_dimensions(f, rows, columns):
                         if is_training:
                             append = False

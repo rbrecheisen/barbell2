@@ -1,192 +1,172 @@
 import os
+import cmd2
 import pydicom
 
-from pydicom._dicom_dict import DicomDictionary
+from barbell2.lib.dicom import is_dicom_file, tag_for_name, get_dictionary_items
 
 
 class DicomExplorer:
 
     def __init__(self):
-        super(DicomExplorer, self).__init__()
         self.files = []
 
-    @staticmethod
-    def is_dicom(file_path):
-        if not os.path.isfile(file_path):
-            return False
-        try:
-            with open(file_path, "rb") as f:
-                return f.read(132).decode("ASCII")[-4:] == "DICM"
-        except UnicodeDecodeError:
-            return False
+    # LOAD
 
-    @staticmethod
-    def tag_for_name(name):
-        for key, value in DicomDictionary.items():
-            if name == value[4]:
-                return hex(int(key))
-
-    def load_file(self, file_path):
-        """ Usage: load_file <file name or path>
-        Load a single DICOM file. If only a file name is provided, it's location is assumed to be the
-        current directory. Otherwise, the full path must be given.
-        """
-        if not os.path.isfile(file_path):
-            print('Cannot find file {}'.format(file_path))
+    def load_file(self, f, verbose=True):
+        if not os.path.isfile(f):
+            if verbose:
+                print('Cannot find file {}'.format(f))
             return
-        if not self.is_dicom(file_path):
-            print('File is not DICOM')
-            return
-        print('Loading file...')
-        self.files.append(file_path)
-        # self.add_result(file_path, desc='Single file')
-        print('Ok')
-
-    def load_dir(self, dir_path):
-        """ Usage: load_dir <dir name or path>
-        Load (recursively) all DICOM files in the given directory. If only the directory name is given, it is
-        assumed that the directory is located in the current directory. Otherwise, the full path must be given.
-        """
-        if not os.path.isdir(dir_path):
-            print('Cannot find directory {}'.format(dir_path))
-            return
-        print('Loading {}...'.format(dir_path))
-        for root, dirs, files in os.walk(dir_path):
-            for f in files:
-                if not f.startswith('._'):
-                    f = os.path.join(root, f)
-                    if self.is_dicom(f):
-                        self.files.append(f)
-                        print(f)
-        print('Loaded {} files'.format(len(data)))
-        print('Ok')
-
-    def show_files(self, n):
-        """ Usage: show_files [n]
-        Show files loaded in the current result set. If you want to show files from another result set
-        select it first using the set_current_result command. If you specify n > 0, the first n files
-        will be displayed. If you specify n < 0, the last n files will be displayed.
-        """
-        files = self.files
-        try:
-            n = 0 if n == '' else int(n)
-        except ValueError as e:
-            print(e)
-        if n == 0:
-            for f in files:
+        if is_dicom_file(f):
+            self.files.append(f)
+            if verbose:
                 print(f)
-        elif n > 0:
-            n = n if n < len(files) else len(files) - 1
-            for i in range(n):
-                print(files[i])
-        elif n < 0:
-            n = -n
-            n = n if n < len(files) else len(files) - 1
-            for i in range(len(files) - n, len(files)):
-                print(files[i])
-        else:
-            print('Illegal n = {}'.format(n))
-        print('Ok')
 
-    def lookup_tag(self, tag_name):
-        """ Usage: lookup_tag <tag name>
-        Lookup tag <tag name> in the DICOM dictionary. You can specify only parts of a tag name, e.g.,
-        "Transmit" will return multiple dictionary entries containing the word "Transmit" (like Transmit
-        Coil Name). Being able to lookup tags comes in handy when you search for them in DICOM files.
-        Note that (parts of) the tag name does not have to be case-sensitive.
-        """
-        for key, value in DicomDictionary.items():
+    def load_dir(self, d, verbose=True):
+        if not os.path.isdir(d):
+            if verbose:
+                print('Cannot find directory {}'.format(d))
+            return
+        for root, dirs, files in os.walk(d):
+            for f in files:
+                f = os.path.join(root, f)
+                self.load_file(f, verbose)
+        if verbose:
+            print('Loaded {} files'.format(len(self.files)))
+
+    # CONVERT
+
+    def to_raw(self, d_out, verbose=True):
+        result = os.system('which gdcmconv>/dev/null')
+        if result > 0:
+            raise RuntimeError('Tool "gdcmconv" is not installed')
+        os.makedirs(d_out, exist_ok=False)
+        for f in self.files:
+            f_target = os.path.join(d_out, os.path.split(f)[1])
+            command = 'gdcmconv --raw {} {}'.format(f, f_target)
+            os.system(command)
+            if verbose:
+                print('Converted {}'.format(f))
+
+    # INSPECTION
+
+    @staticmethod
+    def get_header(f, verbose=True):
+        if os.path.isfile(f) and is_dicom_file(f):
+            p = pydicom.read_file(f, stop_before_pixels=True)
+            if verbose:
+                print(p)
+            return p
+        return None
+
+    @staticmethod
+    def get_pixel_data(f):
+        if os.path.isfile(f) and is_dicom_file(f):
+            p = pydicom.read_file(f, stop_before_pixels=False)
+            return p.pixel_array
+        return None
+
+
+    @staticmethod
+    def get_tags(key_word='', verbose=True):
+        outputs = []
+        for key, value in get_dictionary_items():
             output = '{}: {}'.format(key, value)
-            if tag_name == '':
-                print(output)
+            if key_word == '':
+                outputs.append(output)
+                if verbose:
+                    print(output)
             else:
                 for item in value:
-                    if tag_name in item:
-                        print(output)
-        print('Ok')
+                    if key_word in item:
+                        outputs.append(output)
+                        if verbose:
+                            print(output)
+        return outputs
 
-    def show_values(self, tag_name):
-        """ Usage: show_values <tag name>
-        Show values for tag <tag name> in the currently loaded DICOM files.
-        """
-        files = self.files
-        tag = self.tag_for_name(tag_name)
-        print(tag)
-        for f in files:
+    def get_tag_values(self, tag_name, verbose=True):
+        tag = tag_for_name(tag_name)
+        if verbose:
+            print(tag)
+        values = {}
+        for f in self.files:
             p = pydicom.read_file(f)
             if tag in list(p.keys()):
-                print('{}: {}'.format(f, p[tag].value))
-        print('Ok')
+                values[f] = p[tag].value
+                if verbose:
+                    print('{}: {}'.format(f, values[f]))
+        return values
 
-    def dump(self, file_path):
-        """ Usage: dump file_path
-        Dumps DICOM header for file <file_path>. If the file path does not exist, it must be only a file name
-        and a search is done in the current result set files. If only one hit is found, its header will be
-        dumped. If multiple hits have been found, a list of these file paths is shown from which the user
-        must choose.
-        """
-        if os.path.isfile(file_path):
-            p = pydicom.read_file(file_path)
-            print(p)
-        else:
-            files = self.files
-            hits = []
-            for f in files:
-                if file_path in f:
-                    hits.append(f)
-            if len(hits) == 0:
-                print('File {} not found'.format(file_path))
-            elif len(hits) == 1:
-                p = pydicom.read_file(file_path)
-                print(p)
-            else:
-                print('Choose one of the following candidates:')
-                for hit in hits:
-                    print(hit)
-        print('Ok')
-
-    def check_pixels(self, verbose):
-        """ Usage: check_pixels
-        Checks for each file in the current result set whether its pixels can be loaded using the pydicom
-        package. If not, this may be caused by the fact that the pixel values are compressed, e.g., in
-        JPEG2000 format. To uncompress the values, use the 'to_raw' command of this tool.
-        """
-        files = self.files
+    def check_pixels(self, verbose=True):
         bad_files = []
-        for f in files:
+        for f in self.files:
             p = pydicom.read_file(f)
             try:
                 p.convert_pixel_data()
-                if verbose != '':
-                    print('OK: {}'.format(f))
             except NotImplementedError:
                 bad_files.append(f)
-        if len(bad_files) > 0:
-            for f in bad_files:
-                print('ERROR: {}'.format(f))
-        print('Ok')
+                if verbose:
+                    print('ERROR: {}'.format(f))
+        return bad_files
 
-    def to_raw(self, output_dir):
-        """ Usage: to_raw <output_dir>
-        Decompress pixel values to raw format in case they have been compressed. This command requires that
-        the tool gdcmconv is installed. To install it using HomeBrew (for Mac). The command requires an empty
-        output directory where the converted DICOMs are saved.
+
+class DicomExplorerShell(cmd2.Cmd):
+
+    def __init__(self):
+        super(DicomExplorerShell, self).__init__()
+        self.intro = 'Welcome to the DICOM Explorer Shell!'
+        self.prompt = '(dicom) '
+        self.explorer = DicomExplorer()
+
+    def do_load_file(self, f):
+        """ Usage: load_file <file>
+        Loads single DICOM file <file>
         """
-        result = os.system('which gdcmconv>/dev/null')
-        if result > 0:
-            print('Tool gdcmconv is not installed')
-            return
-        os.makedirs(output_dir, exist_ok=False)
-        files = self.files
-        for f in files:
-            target_file = os.path.join(output_dir, os.path.split(f)[1])
-            command = 'gdcmconv --raw {} {}'.format(f, target_file)
-            os.system(command)
-            print('Converted {}'.format(f))
+        self.explorer.load_file(f)
+        self.poutput('Done')
+
+    def do_load_dir(self, d):
+        """ Usage: load_dir <directory>
+        Loads all DICOM files (recursively) in given <directory>"""
+        self.explorer.load_dir(d)
+        self.poutput('Done')
+
+    def do_to_raw(self, d_out='.'):
+        """ Usage: to_raw
+        Converts all loaded DICOM files to RAW format using GDCM"""
+        self.explorer.to_raw(d_out)
+        self.poutput('Done')
+
+    def do_show_header(self, f):
+        """ Usage: show_header <file>
+        Show header information for DICOM file <file>"""
+        self.explorer.get_header(f)
+        self.poutput('Done')
+
+    def do_show_tags(self, key_word):
+        """ Usage: show_tags <key_word>
+        Show all tags containing <key_word>"""
+        self.explorer.get_tags(key_word)
+        self.poutput('Done')
+
+    def do_show_tag_values(self, tag_name):
+        """ Usage: show_tag_values <tag_name>
+        For all loaded DICOM files, show value of tag <tag_name>"""
+        self.explorer.get_tag_values(tag_name)
+        self.poutput('Done')
+
+    def do_check_pixels(self, _):
+        """ Usage: check_pixels
+        For all loaded DICOM files, check whether the pixels can be loaded into a NumPy array. If not,
+        the pixel values probably need to be converted to RAW format. Use the to_raw() function for that"""
+        self.explorer.check_pixels()
+        self.poutput('Done')
 
 
 def main():
-    pass
+    import sys
+    shell = DicomExplorerShell()
+    sys.exit(shell.cmdloop())
 
 
 if __name__ == '__main__':

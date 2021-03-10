@@ -1,1 +1,1 @@
-from .dicomexplorer import DicomExplorer
+from .dicomexplorer_old import DicomExplorer
