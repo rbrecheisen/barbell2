@@ -117,6 +117,7 @@ class DicomExplorerShell(cmd2.Cmd):
         super(DicomExplorerShell, self).__init__()
         self.intro = 'Welcome to the DICOM Explorer Shell!'
         self.prompt = '(dicom) '
+        self.debug = True
         self.explorer = DicomExplorer()
 
     def do_load_file(self, f):
@@ -154,9 +155,10 @@ class DicomExplorerShell(cmd2.Cmd):
         """ Usage: show_tag_values <tag_name>
         For all loaded DICOM files, show value of tag <tag_name>"""
         tag_values = self.explorer.get_tag_values(tag_name)
-        with open('tag_values.json', 'w') as f:
-            json.dump(tag_values, f, indent=4)
-        self.poutput('Done (written results to tag_values.json)')
+        with open('tag_values.txt', 'w') as f:
+            for k in tag_values.keys():
+                f.write('{}: {}\n'.format(k, tag_values[k]))
+        self.poutput('Done (written string output to tag_values.txt)')
 
     def do_check_pixels(self, _):
         """ Usage: check_pixels
