@@ -1,5 +1,6 @@
 import os
 import cmd2
+import json
 import pydicom
 
 from barbell2.lib.dicom import is_dicom_file, tag_for_name, get_dictionary_items
@@ -152,8 +153,10 @@ class DicomExplorerShell(cmd2.Cmd):
     def do_show_tag_values(self, tag_name):
         """ Usage: show_tag_values <tag_name>
         For all loaded DICOM files, show value of tag <tag_name>"""
-        self.explorer.get_tag_values(tag_name)
-        self.poutput('Done')
+        tag_values = self.explorer.get_tag_values(tag_name)
+        with open('tag_values.json', 'w') as f:
+            json.dump(tag_values, f, indent=4)
+        self.poutput('Done (written results to tag_values.json)')
 
     def do_check_pixels(self, _):
         """ Usage: check_pixels
