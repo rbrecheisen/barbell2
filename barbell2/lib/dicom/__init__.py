@@ -11,14 +11,16 @@ from .tag2numpy import Tag2NumPy
 from pydicom._dicom_dict import DicomDictionary
 
 
-def is_dicom_file(file_path):
-    if not os.path.isfile(file_path):
-        return False
-    if file_path.startswith('._'):
-        return False
+def is_dicom_file(file_path_or_obj):
+    file_obj = file_path_or_obj
+    if isinstance(file_obj, str):
+        if not os.path.isfile(file_obj):
+            return False
+        if file_obj.startswith('._'):
+            return False
+        file_obj = open(file_obj, "rb")
     try:
-        with open(file_path, "rb") as f:
-            return f.read(132).decode("ASCII")[-4:] == "DICM"
+        return file_obj.read(132).decode('ASCII')[-4:] == 'DICM'
     except UnicodeDecodeError:
         return False
 
