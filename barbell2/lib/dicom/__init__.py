@@ -38,3 +38,10 @@ def tag_for_name(name):
 
 def get_dictionary_items():
     return DicomDictionary.items()
+
+
+def get_pixels(p, normalize=False):
+    pixels = p.pixel_array
+    if normalize:
+        return p.RescaleSlope * pixels + p.RescaleIntercept
+    return pixels
