@@ -41,7 +41,8 @@ class Tag2NumPy(object):
     def execute(self):
         self._output_numpy_array = self._get_pixels(self._input_tag_file_path)
         try:
-            self._output_numpy_array = self._output_numpy_array.reshape(self._shape)
+            if self._shape:
+                self._output_numpy_array = self._output_numpy_array.reshape(self._shape)
         except ValueError:
             self._output_numpy_array = None
 

@@ -12,7 +12,7 @@ with open('README.rst') as readme_file:
 with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
-requirements = ['pytest', 'pydicom', 'pandas', 'numpy', 'SimpleITK', 'h5py', 'tensorflow', 'cmd2']
+requirements = ['pydicom', 'numpy', 'matplotlib']
 
 setup_requirements = []
 
@@ -43,9 +43,8 @@ setup(
     packages=find_packages(include=['barbell2', 'barbell2.*']),
     setup_requires=setup_requirements,
     entry_points={
-        'console_scripts': [
-            'dicomexplorer=barbell2.dicomexplorer.dicomexplorer:main',
-        ],
+        # 'console_scripts': ['dicomexplorer=barbell2.dicomexplorer.dicomexplorer:main'],
+        'console_scripts': [],
     },
     test_suite='tests',
     tests_require=test_requirements,

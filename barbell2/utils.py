@@ -1,33 +1,10 @@
 import os
 import time
 import math
-import unittest
 import datetime
-
-from types import SimpleNamespace
-
-
-class MyException(Exception):
-    pass
-
-
-class MyTestCase(unittest.TestCase):
-
-    def setup(self):
-        pass
-
-    def setUp(self):
-        self.setup()
-
-    def tear_down(self):
-        pass
-
-    def tearDown(self):
-        self.tear_down()
-
-
-class MyTestArguments(SimpleNamespace):
-    pass
+import struct
+import binascii
+import numpy as np
 
 
 class Logger(object):
@@ -82,3 +59,65 @@ def duration(seconds):
     remainder = remainder - m * 60
     s = int(math.floor(remainder))
     return '{} hours, {} minutes, {} seconds'.format(h, m, s)
+
+
+def get_tag_pixels(tag_file_path):
+    f = open(tag_file_path, 'rb')
+    f.seek(0)
+    byte = f.read(1)
+    # Make sure to check the byte-value in Python 3!!
+    while byte != b'':
+        byte_hex = binascii.hexlify(byte)
+        if byte_hex == b'0c':
+            break
+        byte = f.read(1)
+    values = []
+    f.read(1)
+    while byte != b'':
+        v = struct.unpack('b', byte)
+        values.append(v)
+        byte = f.read(1)
+    values = np.asarray(values)
+    values = values.astype(np.uint16)
+    return values
+
+
+def get_alberta_color_map():
+    color_map = []
+    for i in range(256):
+        if i == 1:  # muscle
+            color_map.append([255, 0, 0])
+        elif i == 2:  # inter-muscular adipose tissue
+            color_map.append([0, 255, 0])
+        elif i == 5:  # visceral adipose tissue
+            color_map.append([255, 255, 0])
+        elif i == 7:  # subcutaneous adipose tissue
+            color_map.append([0, 255, 255])
+        elif i == 12:  # unknown
+            color_map.append([0, 0, 255])
+        else:
+            color_map.append([0, 0, 0])
+    return color_map
+
+
+def apply_window(pix, window):
+    result = (pix - window[1] + 0.5 * window[0])/window[0]
+    result[result < 0] = 0
+    result[result > 1] = 1
+    return result
+
+
+def create_fake_dicom(pixels, dcm_obj):
+    pixels_new = np.zeros((*pixels.shape, 3), dtype=np.uint8)
+    np.take(get_alberta_color_map(), pixels, axis=0, out=pixels_new)
+    dcm_obj.PhotometricInterpretation = 'RGB'
+    dcm_obj.SamplesPerPixel = 3
+    dcm_obj.BitsAllocated = 8
+    dcm_obj.BitsStored = 8
+    dcm_obj.HighBit = 7
+    dcm_obj.add_new(0x00280006, 'US', 0)
+    dcm_obj.is_little_endian = True
+    dcm_obj.fix_meta_info()
+    dcm_obj.PixelData = pixels_new.tobytes()
+    dcm_obj.SOPInstanceUID = '{}.9999'.format(dcm_obj.SOPInstanceUID)
+    return dcm_obj

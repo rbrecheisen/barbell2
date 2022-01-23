@@ -2,6 +2,9 @@
 
 export PACKAGE=barbell2
 
+export TWINE_USERNAME=$(cat ${HOME}/pypiuser.txt)
+export TWINE_PASSWORD=$(cat ${HOME}/pypipassword.txt)
+
 # Check if Twine is installed for uploading the package
 which twine
 if [ "$?" == "1" ]; then
@@ -80,6 +83,4 @@ rm -rf build dist
 
 # Build new package and upload to PyPI
 python setup.py sdist bdist_wheel
-export TWINE_USERNAME=$(cat ${HOME}/pypiuser.txt)
-export TWINE_PASSWORD=$(cat ${HOME}/pypipassword.txt)
 twine upload dist/*
