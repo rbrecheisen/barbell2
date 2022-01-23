@@ -61,6 +61,58 @@ def duration(seconds):
     return '{} hours, {} minutes, {} seconds'.format(h, m, s)
 
 
+def is_dicom_file(file_path_or_obj):
+    file_obj = file_path_or_obj
+    if isinstance(file_obj, str):
+        if not os.path.isfile(file_obj):
+            return False
+        if file_obj.startswith('._'):
+            return False
+        file_obj = open(file_obj, "rb")
+    try:
+        result = file_obj.read(132).decode('ASCII')[-4:] == 'DICM'
+        file_obj.seek(0)
+        return result
+    except UnicodeDecodeError:
+        return False
+
+
+def is_tag_file(file_path):
+    return file_path.endswith('.tag') and not file_path.startswith('._')
+
+
+def get_tag_file_for_dicom(dcm_file, ext='.tag'):
+    tag_file = os.path.splitext(dcm_file)[0] + ext
+    if not os.path.isfile(tag_file):
+        tag_file = dcm_file + ext
+        if not os.path.isfile(tag_file):
+            print(f'Could not find TAG file for DICOM file {dcm_file}')
+            return None
+        return tag_file
+    return tag_file
+
+
+def is_numpy_file(file_path):
+    return file_path.endswith('.npy') and not file_path.startswith('._')
+
+
+def get_numpy_file_for_dicom(dcm_file):
+    return get_tag_file_for_dicom(dcm_file, ext='.npy')
+
+
+def get_pixels(p, normalize=False):
+    pixels = p.pixel_array
+    if not normalize:
+        return pixels
+    if normalize is True:
+        return p.RescaleSlope * pixels + p.RescaleIntercept
+    if isinstance(normalize, int):
+        return (pixels + np.min(pixels)) / (np.max(pixels) - np.min(pixels)) * normalize
+    if isinstance(normalize, list):
+        return (pixels + np.min(pixels)) / (np.max(pixels) - np.min(pixels)) * normalize[1] + normalize[0]
+    return pixels
+
+
 def get_tag_pixels(tag_file_path):
     f = open(tag_file_path, 'rb')
     f.seek(0)
