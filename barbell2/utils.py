@@ -159,9 +159,14 @@ def apply_window(pix, window):
     return result
 
 
-def create_fake_dicom(pixels, dcm_obj):
+def apply_color_map(pixels, color_map):
     pixels_new = np.zeros((*pixels.shape, 3), dtype=np.uint8)
-    np.take(get_alberta_color_map(), pixels, axis=0, out=pixels_new)
+    np.take(color_map, pixels, axis=0, out=pixels_new)
+    return pixels_new
+
+
+def create_fake_dicom(pixels, dcm_obj):
+    pixels_new = apply_color_map(pixels, get_alberta_color_map())
     dcm_obj.PhotometricInterpretation = 'RGB'
     dcm_obj.SamplesPerPixel = 3
     dcm_obj.BitsAllocated = 8
