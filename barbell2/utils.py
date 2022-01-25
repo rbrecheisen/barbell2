@@ -159,8 +159,8 @@ def apply_window(pix, window):
     return result
 
 
-def apply_color_map(pixels, color_map, dtype=np.uint8):
-    pixels_new = np.zeros((*pixels.shape, 3), dtype=dtype)
+def apply_color_map(pixels, color_map):
+    pixels_new = np.zeros((*pixels.shape, 3), dtype=np.uint8)
     np.take(color_map, pixels, axis=0, out=pixels_new)
     return pixels_new
 

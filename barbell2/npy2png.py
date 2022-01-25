@@ -1,11 +1,8 @@
 import os
-import logging
 import numpy as np
 import matplotlib.pyplot as plt
 
-from .utils import apply_window, apply_color_map, get_alberta_color_map
-
-logger = logging.getLogger(__name__)
+from barbell2.utils import apply_color_map, get_alberta_color_map
 
 
 class Numpy2Png:
@@ -42,10 +39,8 @@ class Numpy2Png:
             npy_array = np.load(self.npy_array_or_file_path)
         else:
             npy_array = self.npy_array_or_file_path
-        npy_array = apply_window(npy_array, self.window)
         if self.color_map is not None:
-            logger.info(f'>>> npy_array: {type(npy_array)}')
-            npy_array = apply_color_map(npy_array, self.color_map, dtype=float)
+            npy_array = apply_color_map(npy_array, self.color_map)
         fig = plt.figure(figsize=self.png_figure_size)
         ax = fig.add_subplot(1, 1, 1)
         if self.color_map is not None:
@@ -56,3 +51,11 @@ class Numpy2Png:
         self.png_file_path = os.path.join(self.output_dir, self.png_file_name)
         plt.savefig(self.png_file_path, bbox_inches='tight')
         plt.close('all')
+
+
+if __name__ == '__main__':
+    # pixels = np.load('/Users/Ralph/Desktop/output-segmentl3/1_pred.npy')
+    n2p = Numpy2Png('/Users/Ralph/Desktop/output-segmentl3/1_pred.npy')
+    n2p.set_color_map('alberta')
+    n2p.set_output_dir('/Users/Ralph/Desktop')
+    n2p.execute()
