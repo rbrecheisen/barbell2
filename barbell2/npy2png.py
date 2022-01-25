@@ -1,8 +1,11 @@
 import os
+import logging
 import numpy as np
 import matplotlib.pyplot as plt
 
 from .utils import apply_window, apply_color_map, get_alberta_color_map
+
+logger = logging.getLogger(__name__)
 
 
 class Numpy2Png:
@@ -41,7 +44,7 @@ class Numpy2Png:
             npy_array = self.npy_array_or_file_path
         npy_array = apply_window(npy_array, self.window)
         if self.color_map is not None:
-            print(f'npy_array: {type(npy_array)}')
+            logger.info(f'>>> npy_array: {type(npy_array)}')
             npy_array = apply_color_map(npy_array, self.color_map, dtype=float)
         fig = plt.figure(figsize=self.png_figure_size)
         ax = fig.add_subplot(1, 1, 1)
