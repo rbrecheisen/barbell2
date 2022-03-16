@@ -11,5 +11,5 @@ class Tag2Numpy:
     def execute(self):
         self.npy_array = get_tag_pixels(self.tag_file_path)
         if self.shape is not None:
-            self.npy_array = self.npy_array.reshare(self.shape)
+            self.npy_array = self.npy_array.reshape(self.shape)
         return self.npy_array
