@@ -38,8 +38,8 @@ class Dicom2Numpy:
         return self.npy_array
 
 
-x = '/Volumes/SEAGATE_RALPH/data/hpb/metabolicimaging/bodycomposition/data/neuro_mumc/Sandra/DCM_TAG_LIJST/19001.dcm'
-p = pydicom.dcmread(x, force=True)
-p.file_meta.TransferSyntaxUID = '1.2.840.10008.1.2'
-n = Dicom2Numpy(p)
-print(n.execute().shape)
+# x = '/Volumes/SEAGATE_RALPH/data/hpb/metabolicimaging/bodycomposition/data/neuro_mumc/Sandra/DCM_TAG_LIJST/19001.dcm'
+# p = pydicom.dcmread(x, force=True)
+# p.file_meta.TransferSyntaxUID = '1.2.840.10008.1.2'
+# n = Dicom2Numpy(p)
+# print(n.execute().shape)
