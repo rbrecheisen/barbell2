@@ -7,9 +7,9 @@ from .utils import get_alberta_color_map, create_fake_dicom
 
 class Numpy2Dicom:
 
-    def __init__(self, npy_array_or_file_path, dcm_file_path):
+    def __init__(self, npy_array_or_file_path, dcm_file_path_or_obj):
         self.npy_array_or_file_path = npy_array_or_file_path
-        self.dcm_file_path = dcm_file_path
+        self.dcm_file_path_or_obj = dcm_file_path_or_obj
         self.color_map = get_alberta_color_map()
         self.npy_dcm_file_name = 'npy_array.dcm'
         self.npy_dcm_file_path = None
@@ -29,7 +29,10 @@ class Numpy2Dicom:
             npy_array = np.load(self.npy_array_or_file_path)
         else:
             npy_array = self.npy_array_or_file_path
-        p = pydicom.dcmread(self.dcm_file_path)
+        if isinstance(self.dcm_file_path_or_obj, str):
+            p = pydicom.dcmread(self.dcm_file_path_or_obj)
+        else:
+            p = self.dcm_file_path_or_obj
         if p.file_meta.TransferSyntaxUID.is_compressed:
             p.decompress()
         p_new = create_fake_dicom(npy_array, p)

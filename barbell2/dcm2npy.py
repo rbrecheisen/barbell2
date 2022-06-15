@@ -5,8 +5,8 @@ from barbell2.utils import apply_window
 
 class Dicom2Numpy:
 
-    def __init__(self, dcm_file_path):
-        self.dcm_file_path = dcm_file_path
+    def __init__(self, dcm_file_path_or_obj):
+        self.dcm_file_path_or_obj = dcm_file_path_or_obj
         self.npy_array = None
         self.window = None
         self.normalize_enabled = True
@@ -22,7 +22,10 @@ class Dicom2Numpy:
 
     def execute(self):
         self.npy_array = None
-        p = pydicom.dcmread(self.dcm_file_path)
+        if isinstance(self.dcm_file_path_or_obj, str):
+            p = pydicom.dcmread(self.dcm_file_path_or_obj)
+        else:
+            p = self.dcm_file_path_or_obj
         pixels = p.pixel_array
         self.npy_array = pixels.reshape(p.Rows, p.Columns)
         if self.window is not None:
@@ -32,10 +35,3 @@ class Dicom2Numpy:
             m = p.RescaleSlope
             self.npy_array = m * self.npy_array + b
         return self.npy_array
-
-
-if __name__ == '__main__':
-    d2n = Dicom2Numpy('/Users/Ralph/Desktop/output-segmentl3/1.dcm')
-    d2n.set_window((400, 50))
-    pixels = d2n.execute()
-    print(pixels)
