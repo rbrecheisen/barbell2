@@ -27,6 +27,7 @@ class Dicom2Numpy:
         else:
             p = self.dcm_file_path_or_obj
         pixels = p.pixel_array
+        print(f'dcm2npy: pixels shape = {pixels.shape}')
         self.npy_array = pixels.reshape(p.Rows, p.Columns)
         if self.is_normalize_enabled():
             b = p.RescaleIntercept
@@ -35,3 +36,10 @@ class Dicom2Numpy:
         if self.window is not None:
             self.npy_array = apply_window(self.npy_array, self.window)
         return self.npy_array
+
+
+x = '/Volumes/SEAGATE_RALPH/data/hpb/metabolicimaging/bodycomposition/data/neuro_mumc/Sandra/DCM_TAG_LIJST/19001.dcm'
+p = pydicom.dcmread(x, force=True)
+p.file_meta.TransferSyntaxUID = '1.2.840.10008.1.2'
+n = Dicom2Numpy(p)
+print(n.execute().shape)
