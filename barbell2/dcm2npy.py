@@ -28,10 +28,10 @@ class Dicom2Numpy:
             p = self.dcm_file_path_or_obj
         pixels = p.pixel_array
         self.npy_array = pixels.reshape(p.Rows, p.Columns)
-        if self.window is not None:
-            self.npy_array = apply_window(self.npy_array, self.window)
         if self.is_normalize_enabled():
             b = p.RescaleIntercept
             m = p.RescaleSlope
             self.npy_array = m * self.npy_array + b
+        if self.window is not None:
+            self.npy_array = apply_window(self.npy_array, self.window)
         return self.npy_array
