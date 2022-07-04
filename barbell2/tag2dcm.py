@@ -19,7 +19,7 @@ class Tag2Dicom:
 
     def execute(self):
         if isinstance(self.dcm_file_path_or_obj, str):
-            p = pydicom.dcmread(self.dcm_file_path)
+            p = pydicom.dcmread(self.dcm_file_path_or_obj)
         else:
             p = self.dcm_file_path_or_obj
         t2n = Tag2Numpy(self.tag_file_path, (p.Rows, p.Columns))
