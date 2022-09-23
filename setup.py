@@ -50,7 +50,11 @@ setup(
     setup_requires=setup_requirements,
     entry_points={
         # 'console_scripts': ['dicomexplorer=barbell2.dicomexplorer.dicomexplorer:main'],
-        'console_scripts': [],
+        'console_scripts': [
+            'adddicomextension=barbell2.bc.adddicomextension:main',
+            'decompressdicom=barbell2.bc.decompressdicom:main',
+            'flattendirectories=barbell2.bc.flattendirectories:main',
+        ],
     },
     test_suite='tests',
     tests_require=test_requirements,
