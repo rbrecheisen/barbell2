@@ -17,6 +17,8 @@ elif args.major_minor == 'minor':
     v_minor += 1
 elif args.major_minor == 'patch':
     v_patch += 1
+version_new = f'{v_major}.{v_minor}.{v_patch}'
+print(version_new)
 f = open('VERSION', 'w')
-f.write(f'{v_major}.{v_minor}.{v_patch}')
+f.write(version_new)
 f.close()
