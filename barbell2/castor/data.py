@@ -52,6 +52,7 @@ class DicaData:
         self.df_pat = df_pat
         self.df_trt = df_trt
         self.df_com = df_com
+        self.prefix = None
         self.df_dict_pat = df_dict_pat
         self.df_dict_trt = df_dict_trt
         self.df_dict_com = df_dict_com
@@ -108,6 +109,7 @@ class DpcaData(DicaData):
 
     def __init__(self, df_pat, df_trt, df_com, df_dict_pat, df_dict_trt, df_dict_com):
         super().__init__(df_pat, df_trt, df_com, df_dict_pat, df_dict_trt, df_dict_com)
+        self.prefix = 'dpca_'
         data = {
             'treathosp': [],
             'geslacht': [],
@@ -170,6 +172,7 @@ class DhbaData(DicaData):
 
     def __init__(self, df_pat, df_trt, df_com, df_dict_pat, df_dict_trt, df_dict_com):
         super().__init__(df_pat, df_trt, df_com, df_dict_pat, df_dict_trt, df_dict_com)
+        self.prefix = 'dhba_'
         data = {
             'treathosp': [],
             'geslacht': [],

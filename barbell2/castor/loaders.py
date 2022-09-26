@@ -37,5 +37,8 @@ class DicaExportFileLoader:
         df_dict_pat = pd.read_excel(self.file_path_dict, dtype=str, sheet_name='patient', engine='openpyxl')
         df_dict_trt = pd.read_excel(self.file_path_dict, dtype=str, sheet_name='verrichting', engine='openpyxl')
         df_dict_com = pd.read_excel(self.file_path_dict, dtype=str, sheet_name='comorbiditeiten', engine='openpyxl')
-        self.data = data.DicaData(df_pat, df_trt, df_com, df_dict_pat, df_dict_trt, df_dict_com)
+        if 'dpca' in self.file_path_data:
+            self.data = data.DpcaData(df_pat, df_trt, df_com, df_dict_pat, df_dict_trt, df_dict_com)
+        if 'dhba' in self.file_path_data:
+            self.data = data.DhbaData(df_pat, df_trt, df_com, df_dict_pat, df_dict_trt, df_dict_com)
         return self.data
