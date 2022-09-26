@@ -83,7 +83,7 @@ class CastorRecordBuilder:
         # rename columns with prefix dpca_
         self.records = self.records.add_prefix(self.dica_data.prefix)
         # add extra columns
-        self.records.insert(0, f'{self.dica_data.prefix}_idcode', f'{self.dica_data.prefix}_verrichting_upn')
+        self.records.insert(0, f'{self.dica_data.prefix}idcode', self.records[f'{self.dica_data.prefix}verrichting_upn'])
         self.records.insert(0, 'Participant Creation Date', datetime.datetime.now().strftime('%d-%m-%Y'))
         self.records.insert(0, 'Site Abbreviation', 'MUMC')
         self.records.insert(0, 'Participant Status', 'Not Set')

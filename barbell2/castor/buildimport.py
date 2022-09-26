@@ -19,17 +19,18 @@ def main():
     builder.save(args.output_dir)
 
 
-# def bla():
-#     cast_loader = loaders.CastorExportFileLoader('/Users/Ralph/data/surfdrive/documents/hpb/castor/data/exports/castoredc/ESPRESSO_v2.0_DHBA_excel_export_20220926102336.xlsx')
-#     cast_data = cast_loader.load()
-#     dica_loader = loaders.DicaExportFileLoader(
-#         '/Users/Ralph/data/surfdrive/documents/hpb/castor/data/exports/dhba/dhba_2022.academisch-ziekenhuis-maastricht.xlsx',
-#         '/Users/Ralph/data/surfdrive/documents/hpb/castor/data/data_dicitionaries/dhba/dhba-2022_1.1.0_datadictionary_20211001_122752.xlsx',
-#     )
-#     dica_data = dica_loader.load()
-#     builder = builders.CastorRecordBuilder(cast_data, dica_data)
-#     builder.execute()
-#     builder.save('/Users/Ralph/Desktop/buildcastorimport')
-#
-#
-# bla()
+def bla():
+    cast_loader = loaders.CastorExportFileLoader('/Users/Ralph/data/surfdrive/documents/hpb/castor/data/exports/castoredc/ESPRESSO_v2.0_DHBA_excel_export_20220926102336.xlsx')
+    cast_data = cast_loader.load()
+    dica_loader = loaders.DicaExportFileLoader(
+        '/Users/Ralph/data/surfdrive/documents/hpb/castor/data/exports/dhba/dhba_2022.academisch-ziekenhuis-maastricht.xlsx',
+        '/Users/Ralph/data/surfdrive/documents/hpb/castor/data/data_dicitionaries/dhba/dhba-2022_1.1.0_datadictionary_20211001_122752.xlsx',
+    )
+    dica_data = dica_loader.load()
+    builder = builders.CastorRecordBuilder(cast_data, dica_data)
+    builder.execute()
+    builder.save('/Users/Ralph/Desktop/buildcastorimport')
+
+
+if __name__ == '__main__':
+    bla()

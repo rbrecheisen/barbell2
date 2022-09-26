@@ -13,8 +13,11 @@ v_minor = int(version[1])
 v_patch = int(version[2])
 if args.major_minor == 'major':
     v_major += 1
+    v_minor = 0
+    v_patch = 0
 elif args.major_minor == 'minor':
     v_minor += 1
+    v_patch = 0
 elif args.major_minor == 'patch':
     v_patch += 1
 version_new = f'{v_major}.{v_minor}.{v_patch}'
