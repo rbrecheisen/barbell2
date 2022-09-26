@@ -49,12 +49,12 @@ setup(
     packages=find_packages(include=['barbell2', 'barbell2.*']),
     setup_requires=setup_requirements,
     entry_points={
-        # 'console_scripts': ['dicomexplorer=barbell2.dicomexplorer.dicomexplorer:main'],
         'console_scripts': [
-            'adddicomextension=barbell2.bc.adddicomextension:main',
-            'decompressdicom=barbell2.bc.decompressdicom:main',
-            'flattendirectories=barbell2.bc.flattendirectories:main',
-            'buildcastorimport=barbell2.castor.buildimport:main',
+            'bc-adddcmext=barbell2.bc.adddicomextension:main',
+            'bc-decompress=barbell2.bc.decompressdicom:main',
+            'bc-flattendirs=barbell2.bc.flattendirectories:main',
+            'bc-copyfiles=barbell2.bc.copyfiles:main',
+            'castor-buildimport=barbell2.castor.buildimport:main',
         ],
     },
     test_suite='tests',

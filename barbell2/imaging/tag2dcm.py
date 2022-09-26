@@ -10,7 +10,7 @@ class Tag2Dicom:
     def __init__(self, tag_file_path, dcm_file_path_or_obj):
         self.tag_file_path = tag_file_path
         self.dcm_file_path_or_obj = dcm_file_path_or_obj
-        self.output_dir = '.'
+        self.output_dir = '..'
         self.tag_dcm_file_name = None
         self.tag_dcm_file_path = None
 

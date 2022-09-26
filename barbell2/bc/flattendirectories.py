@@ -1,16 +1,13 @@
-from barbell2 import common
-
+import argparse
 import os
 import shutil
 
 
 def main():
-    parser = common.get_parser()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input_dir', help='Input directory', default='.')
+    parser.add_argument('--output_dir', help='Output directory', default='output')
     args = parser.parse_args()
-    if args.input_dir == args.output_dir:
-        raise RuntimeError('Input and output directories cannot be the same')
-    if args.overwrite == 1 and os.path.isdir(args.output_dir):
-        shutil.rmtree(args.output_dir)
     os.makedirs(args.output_dir)
     for root, dirs, files in os.walk(args.input_dir):
         for f_name in files:
@@ -23,9 +20,10 @@ def main():
             print(f_name_new)
 
 
-common.setup_args_env([
-    '--input-dir=/Users/Ralph/data/surfdrive/projects/hpb/bodycomposition/data/l3tag_cohorts',
-    '--output-dir=/Users/Ralph/Desktop/output',
-    '--overwrite=1',
-])
-main()
+if __name__ == '__main__':
+    from barbell2 import common
+    common.setup_args_env([
+        '--input_dir=/Users/Ralph/data/surfdrive/projects/hpb/bodycomposition/data/l3tag_cohorts',
+        '--output_dir=/Users/Ralph/Desktop/output',
+    ])
+    main()

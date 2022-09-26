@@ -13,7 +13,7 @@ class Numpy2Dicom:
         self.color_map = get_alberta_color_map()
         self.npy_dcm_file_name = 'npy_array.dcm'
         self.npy_dcm_file_path = None
-        self.output_dir = '.'
+        self.output_dir = '..'
 
     def set_color_map(self, color_map):
         self.color_map = color_map
