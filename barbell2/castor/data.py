@@ -12,6 +12,15 @@ class CastorData:
         for date_column in self.get_date_columns():
             self.df[date_column] = pd.to_datetime(
                 self.df[date_column], errors='coerce', infer_datetime_format=True)
+        self.prefix = self.infer_prefix()
+
+    def infer_prefix(self):
+        for c_name in self.df.columns:
+            if c_name.startswith('dpca_'):
+                return 'dpca_'
+            if c_name.startswith('dhba_'):
+                return 'dhba_'
+        return None
 
     def get_column_names(self, remove_prefix='', add_prefix=''):
         if remove_prefix == '' and add_prefix == '':
@@ -36,8 +45,8 @@ class CastorData:
             return self.date_columns
 
     def get_last_surgery_date(self):
-        self.df.sort_values(by='dpca_datok')
-        return self.df.iloc[-1, :]['dpca_datok']
+        self.df.sort_values(by=f'{self.prefix}datok')
+        return self.df.iloc[-1, :][f'{self.prefix}datok']
 
     def get_last_record_id(self):
         return self.df.iloc[-1, 0]
@@ -146,6 +155,11 @@ class DpcaData(DicaData):
             patient_uri = self.get_patient_uri(patient_id, self.df_pat)
             if patient_uri is None:
                 print(f'Could not find patient URI associated with ID {patient_id}')
+                for c_name in data.keys():
+                    if c_name == 'gebdat' or c_name == 'datovl' or c_name == 'datcom':
+                        data[c_name].append(pd.NaT)
+                    else:
+                        data[c_name].append('')
                 continue
             data['treathosp'].append('1')
             data['geslacht'].append(self.df_pat.loc[patient_uri]['geslacht'])
@@ -170,7 +184,6 @@ class DpcaData(DicaData):
                         data[c_name].append('0')
         for k in data.keys():
             self.df_trt[k] = data[k]
-        # self.df_trt = self.df_trt.dropna(subset=['datok'])
 
 
 class DhbaData(DicaData):
@@ -209,6 +222,11 @@ class DhbaData(DicaData):
             patient_uri = self.get_patient_uri(patient_id, self.df_pat)
             if patient_uri is None:
                 print(f'Could not find patient URI associated with ID {patient_id}')
+                for c_name in data.keys():
+                    if c_name == 'gebdat' or c_name == 'datovl' or c_name == 'datcom':
+                        data[c_name].append(pd.NaT)
+                    else:
+                        data[c_name].append('')
                 continue
             data['treathosp'].append('1')
             data['geslacht'].append(self.df_pat.loc[patient_uri]['geslacht'])
@@ -236,4 +254,3 @@ class DhbaData(DicaData):
                 self.df_trt[k] = data[k]
             except ValueError as e:
                 print(f'{k}: {str(e)}')
-        # self.df_trt = self.df_trt.dropna(subset=['datok'])
