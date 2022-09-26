@@ -54,6 +54,7 @@ setup(
             'adddicomextension=barbell2.bc.adddicomextension:main',
             'decompressdicom=barbell2.bc.decompressdicom:main',
             'flattendirectories=barbell2.bc.flattendirectories:main',
+            'buildcastorimport=barbell2.castor.buildimport:main',
         ],
     },
     test_suite='tests',

@@ -1,4 +1,4 @@
-import common
+from barbell2 import common
 
 
 def main():

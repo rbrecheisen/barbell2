@@ -1,4 +1,5 @@
 import math
+import os
 import json
 import loaders
 import datetime
@@ -108,13 +109,13 @@ class CastorRecordBuilder:
         self.records.insert(0, 'Participant Id', participant_ids)
         print(f'Added participant IDs: {participant_ids}')
 
-    def save(self):
+    def save(self, output_dir):
         max_nr_cells = 25000
         nr_columns = len(self.records.columns)
         nr_rows = len(self.records.index)
         nr_cells = nr_rows * nr_columns
         if nr_cells <= max_nr_cells:
-            self.records.to_csv('/Users/Ralph/Desktop/new_records.csv', index=False, sep=';')
+            self.records.to_csv(os.path.join(output_dir, 'new_records.csv'), index=False, sep=';')
         else:
             nr_rows_block = int(math.floor(max_nr_cells / nr_columns))
             nr_blocks = int(math.floor(nr_rows / nr_rows_block))
@@ -122,11 +123,11 @@ class CastorRecordBuilder:
             i2 = nr_rows_block - 1
             for i in range(nr_blocks):
                 df = self.records.loc[i1:i2]
-                df.to_csv('/Users/Ralph/Desktop/new_records_{:02d}.csv'.format(i), index=False, sep=';')
+                df.to_csv(os.path.join(output_dir, 'new_records_{:02d}.csv'.format(i)), index=False, sep=';')
                 i1 = i2 + 1
                 i2 += nr_rows_block
             df = self.records.loc[i1:]
-            df.to_csv('/Users/Ralph/Desktop/new_records_{:02d}.csv'.format(nr_blocks-1), index=False, sep=';')
+            df.to_csv(os.path.join(output_dir, 'new_records_{:02d}.csv'.format(nr_blocks-1)), index=False, sep=';')
 
     @staticmethod
     def test():

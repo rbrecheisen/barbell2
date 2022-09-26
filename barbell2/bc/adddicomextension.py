@@ -1,7 +1,6 @@
-import common
+from barbell2 import common
 
 import os
-import shutil
 
 
 def main():
