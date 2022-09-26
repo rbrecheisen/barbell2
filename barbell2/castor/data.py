@@ -66,6 +66,8 @@ class DicaData:
                 self.df_com[date_column] = pd.to_datetime(self.df_com[date_column], errors='coerce')
         self.df_pat = self.df_pat.dropna(subset=['upn'])
         self.df_pat = self.df_pat.assign(gebjaar=self.df_pat['gebdat'].dt.year)
+        self.df_trt = self.df_trt.dropna(subset=['verrichting_upn'])
+        self.df_trt = self.df_trt.dropna(subset=['datok'])
 
     @staticmethod
     def get_patient_uri(patient_id, df):
@@ -168,7 +170,7 @@ class DpcaData(DicaData):
                         data[c_name].append('0')
         for k in data.keys():
             self.df_trt[k] = data[k]
-        self.df_trt = self.df_trt.dropna(subset=['datok'])
+        # self.df_trt = self.df_trt.dropna(subset=['datok'])
 
 
 class DhbaData(DicaData):
@@ -231,4 +233,4 @@ class DhbaData(DicaData):
                         data[c_name].append('0')
         for k in data.keys():
             self.df_trt[k] = data[k]
-        self.df_trt = self.df_trt.dropna(subset=['datok'])
+        # self.df_trt = self.df_trt.dropna(subset=['datok'])
