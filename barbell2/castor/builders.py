@@ -109,6 +109,7 @@ class CastorRecordBuilder:
         print(f'Added participant IDs: {participant_ids}')
 
     def save(self, output_dir):
+        os.makedirs(output_dir)
         max_nr_cells = 25000
         nr_columns = len(self.records.columns)
         nr_rows = len(self.records.index)
