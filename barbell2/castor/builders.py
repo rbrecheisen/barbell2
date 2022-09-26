@@ -2,6 +2,8 @@ import math
 import os
 import json
 import datetime
+import shutil
+
 import numpy as np
 import pandas as pd
 
@@ -95,10 +97,13 @@ class CastorRecordBuilder:
         print(f'Added participant IDs: {participant_ids}')
 
     def save(self, output_dir):
+        if os.path.isdir(output_dir):
+            shutil.rmtree(output_dir)
         os.makedirs(output_dir)
         max_nr_cells = 25000
         nr_columns = len(self.records.columns)
         nr_rows = len(self.records.index)
+        print(f'Saving {nr_rows} records...')
         nr_cells = nr_rows * nr_columns
         if nr_cells <= max_nr_cells:
             f_path = os.path.join(output_dir, 'new_records.csv')
@@ -108,15 +113,15 @@ class CastorRecordBuilder:
             nr_rows_block = int(math.floor(max_nr_cells / nr_columns))
             nr_blocks = int(math.floor(nr_rows / nr_rows_block))
             i1 = 0
-            i2 = nr_rows_block - 1
+            i2 = nr_rows_block
             for i in range(nr_blocks):
-                df = self.records.loc[i1:i2]
+                df = self.records.iloc[i1:i2]
                 f_path = os.path.join(output_dir, 'new_records_{:02d}.csv'.format(i))
                 df.to_csv(f_path, index=False, sep=';')
                 print(f'Saved {f_path}')
-                i1 = i2 + 1
+                i1 = i2
                 i2 += nr_rows_block
-            df = self.records.loc[i1:]
-            f_path = os.path.join(output_dir, 'new_records_{:02d}.csv'.format(nr_blocks-1))
+            df = self.records.iloc[i1:]
+            f_path = os.path.join(output_dir, 'new_records_{:02d}.csv'.format(nr_blocks))
             df.to_csv(f_path, index=False, sep=';')
             print(f'Saved {f_path}')

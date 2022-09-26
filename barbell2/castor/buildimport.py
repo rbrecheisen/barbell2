@@ -29,6 +29,7 @@ def main():
 #     dica_data = dica_loader.load()
 #     builder = builders.CastorRecordBuilder(cast_data, dica_data)
 #     builder.execute()
+#     builder.save('/Users/Ralph/Desktop/buildcastorimport')
 #
 #
 # bla()
