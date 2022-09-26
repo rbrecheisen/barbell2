@@ -1,6 +1,6 @@
 import argparse
-import loaders
-import builders
+from barbell2.castor import loaders
+from barbell2.castor import builders
 
 
 def main():

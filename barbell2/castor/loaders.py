@@ -1,5 +1,5 @@
 import pandas as pd
-import data
+from barbell2.castor import data
 
 
 class CastorExportFileLoader:
