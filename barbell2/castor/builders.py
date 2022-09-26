@@ -23,11 +23,6 @@ class CastorVariableCoverageTableBuilder:
 
     def execute(self):
         print('Building records...')
-        # What needs to happen here? What's the end result? A table with two columns.
-        # Column 1 = Variable name
-        # Column 2 = %
-        # Column 3 = N/M
-        print('Calculating flags...')
         flags = {}
         for column in self.cast_data.df.columns:
             flags[column] = []
@@ -53,14 +48,6 @@ class CastorVariableCoverageTableBuilder:
 
     def save(self, file_path):
         self.records.to_csv(file_path, index=False, sep=';')
-
-    @staticmethod
-    def test():
-        loader = loaders.CastorExportFileLoader('/Users/Ralph/Desktop/ESPRESSO_v2.0_DHBA_excel_export_20220919120129.xlsx')
-        data = loader.load()
-        builder = CastorVariableCoverageTableBuilder(data)
-        builder.execute()
-        builder.save('/Users/Ralph/Desktop/coverage_lever.csv')
 
 
 class CastorRecordBuilder:
@@ -128,22 +115,3 @@ class CastorRecordBuilder:
                 i2 += nr_rows_block
             df = self.records.loc[i1:]
             df.to_csv(os.path.join(output_dir, 'new_records_{:02d}.csv'.format(nr_blocks-1)), index=False, sep=';')
-
-    @staticmethod
-    def test():
-        from barbell2.castor import loaders
-        cast_loader = loaders.CastorExportFileLoader('/Users/Ralph/Desktop/ESPRESSO_v2.0_DPCA_excel_export_20220902120319.xlsx')
-        cast_data = cast_loader.load()
-        print(cast_data.get_last_surgery_date())
-        dpca_loader = loaders.DicaExportFileLoader(
-            '/Users/Ralph/Desktop/dpca_2021.academisch-ziekenhuis-maastricht-april.xlsx',
-            '/Users/Ralph/Desktop/dpca-2022_1.0.1_datadictionary_20220128_103452.xlsx',
-        )
-        dpca_data = dpca_loader.load()
-        builder = CastorRecordBuilder(cast_data, dpca_data)
-        builder.execute()
-        builder.save()
-
-
-# CastorRecordBuilder.test()
-# CastorVariableCoverageTableBuilder.test()

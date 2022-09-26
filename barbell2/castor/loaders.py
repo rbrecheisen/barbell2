@@ -25,6 +25,10 @@ class DicaExportFileLoader:
         self.data = None
 
     def load(self):
+        if self.file_path_data.endswith('.xls'):
+            raise RuntimeError('Data must be recent Excel format (*.xlsx)')
+        if self.file_path_dict.endswith('.xls'):
+            raise RuntimeError('Data dictionary must be recent format (*.xlsx)')
         print('Loading DICA data...')
         df_pat = pd.read_excel(self.file_path_data, dtype=str, sheet_name='patient', engine='openpyxl', index_col='uri')
         df_trt = pd.read_excel(self.file_path_data, dtype=str, sheet_name='verrichting', engine='openpyxl', index_col='uri')

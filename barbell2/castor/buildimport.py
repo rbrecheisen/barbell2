@@ -19,4 +19,4 @@ def main():
     builder.save(args.output_dir)
 
 
-main()
+# main()
