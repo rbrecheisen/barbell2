@@ -64,7 +64,6 @@ class CastorRecordBuilder:
         for idx, row in self.dpca_data.df.iterrows():
             surgery_date = row['datok']
             if surgery_date > last_surgery_date:
-                print(surgery_date)
                 indexes.append(idx)
         self.records = self.dpca_data.df.loc[indexes]
         # drop columns not occurring in Castor
@@ -102,7 +101,9 @@ class CastorRecordBuilder:
         nr_rows = len(self.records.index)
         nr_cells = nr_rows * nr_columns
         if nr_cells <= max_nr_cells:
-            self.records.to_csv(os.path.join(output_dir, 'new_records.csv'), index=False, sep=';')
+            f_path = os.path.join(output_dir, 'new_records.csv')
+            self.records.to_csv(f_path, index=False, sep=';')
+            print(f'Saved {f_path}')
         else:
             nr_rows_block = int(math.floor(max_nr_cells / nr_columns))
             nr_blocks = int(math.floor(nr_rows / nr_rows_block))
@@ -110,8 +111,12 @@ class CastorRecordBuilder:
             i2 = nr_rows_block - 1
             for i in range(nr_blocks):
                 df = self.records.loc[i1:i2]
-                df.to_csv(os.path.join(output_dir, 'new_records_{:02d}.csv'.format(i)), index=False, sep=';')
+                f_path = os.path.join(output_dir, 'new_records_{:02d}.csv'.format(i))
+                df.to_csv(f_path, index=False, sep=';')
+                print(f'Saved {f_path}')
                 i1 = i2 + 1
                 i2 += nr_rows_block
             df = self.records.loc[i1:]
-            df.to_csv(os.path.join(output_dir, 'new_records_{:02d}.csv'.format(nr_blocks-1)), index=False, sep=';')
+            f_path = os.path.join(output_dir, 'new_records_{:02d}.csv'.format(nr_blocks-1))
+            df.to_csv(f_path, index=False, sep=';')
+            print(f'Saved {f_path}')
