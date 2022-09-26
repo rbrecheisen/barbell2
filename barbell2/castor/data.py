@@ -65,6 +65,49 @@ class DicaData:
                 self.df_com[date_column] = pd.to_datetime(self.df_com[date_column], errors='coerce')
         self.df_pat = self.df_pat.dropna(subset=['upn'])
         self.df_pat = self.df_pat.assign(gebjaar=self.df_pat['gebdat'].dt.year)
+
+    @staticmethod
+    def get_patient_uri(patient_id, df):
+        for idx, row in df.iterrows():
+            if patient_id in row['upn']:
+                return idx
+        return None
+
+    @staticmethod
+    def get_comorbidities_uri(patient_uri, df):
+        for idx, row in df.iterrows():
+            if patient_uri == row['patient_uri']:
+                return idx
+        return None
+
+    def get_date_columns(self):
+        if len(self.date_columns) > 0:
+            return self.date_columns
+        else:
+            for idx, row in self.df_dict_pat.iterrows():
+                if row['TYPE'] == 'datum':
+                    self.date_columns.append(row['VARIABELE NAAM'])
+            for idx, row in self.df_dict_trt.iterrows():
+                if row['TYPE'] == 'datum':
+                    self.date_columns.append(row['VARIABELE NAAM'])
+            for idx, row in self.df_dict_com.iterrows():
+                if row['TYPE'] == 'datum':
+                    self.date_columns.append(row['VARIABELE NAAM'])
+            return self.date_columns
+
+    def get_last_surgery_date(self):
+        self.df.sort_values(by='datok')
+        return self.df.iloc[-1, :]['datok']
+
+    @property
+    def df(self):
+        return self.df_trt
+
+
+class DpcaData(DicaData):
+
+    def __init__(self, df_pat, df_trt, df_com, df_dict_pat, df_dict_trt, df_dict_com):
+        super().__init__(df_pat, df_trt, df_com, df_dict_pat, df_dict_trt, df_dict_com)
         data = {
             'treathosp': [],
             'geslacht': [],
@@ -110,85 +153,73 @@ class DicaData:
                 data['overl'].append('1')
             if comorbiditeiten_uri is not None:
                 data['datcom'].append(self.df_com.loc[comorbiditeiten_uri]['datcom'])
-                data['comlong'].append(self.df_com.loc[comorbiditeiten_uri]['comlong'])
-                data['commyo'].append(self.df_com.loc[comorbiditeiten_uri]['commyo'])
-                data['comhartfaal'].append(self.df_com.loc[comorbiditeiten_uri]['comhartfaal'])
-                data['comperif'].append(self.df_com.loc[comorbiditeiten_uri]['comperif'])
-                data['comcva'].append(self.df_com.loc[comorbiditeiten_uri]['comcva'])
-                data['comparalys'].append(self.df_com.loc[comorbiditeiten_uri]['comparalys'])
-                data['comdem'].append(self.df_com.loc[comorbiditeiten_uri]['comdem'])
-                data['comdiam'].append(self.df_com.loc[comorbiditeiten_uri]['comdiam'])
-                data['comdiaminsu'].append(self.df_com.loc[comorbiditeiten_uri]['comdiaminsu'])
-                data['comgiulcus'].append(self.df_com.loc[comorbiditeiten_uri]['comgiulcus'])
-                data['comlever'].append(self.df_com.loc[comorbiditeiten_uri]['comlever'])
-                data['compancr'].append(self.df_com.loc[comorbiditeiten_uri]['compancr'])
-                data['comnier'].append(self.df_com.loc[comorbiditeiten_uri]['comnier'])
-                data['combind'].append(self.df_com.loc[comorbiditeiten_uri]['combind'])
-                data['comhiv'].append(self.df_com.loc[comorbiditeiten_uri]['comhiv'])
-                data['commalig'].append(self.df_com.loc[comorbiditeiten_uri]['commalig'])
-                data['commal1'].append(self.df_com.loc[comorbiditeiten_uri]['commal1'])
-                data['commal2'].append(self.df_com.loc[comorbiditeiten_uri]['commal2'])
-                data['commal3'].append(self.df_com.loc[comorbiditeiten_uri]['commal3'])
-                data['commal4'].append(self.df_com.loc[comorbiditeiten_uri]['commal4'])
+                for c_name in data.keys():
+                    if c_name.startswith('com'):
+                        data[c_name].append(self.df_com.loc[comorbiditeiten_uri][c_name])
             else:
                 data['datcom'].append(pd.NaT)
-                data['comlong'].append('0')
-                data['commyo'].append('0')
-                data['comhartfaal'].append('0')
-                data['comperif'].append('0')
-                data['comcva'].append('0')
-                data['comparalys'].append('0')
-                data['comdem'].append('0')
-                data['comdiam'].append('0')
-                data['comdiaminsu'].append('0')
-                data['comgiulcus'].append('0')
-                data['comlever'].append('0')
-                data['compancr'].append('0')
-                data['comnier'].append('0')
-                data['combind'].append('0')
-                data['comhiv'].append('0')
-                data['commalig'].append('0')
-                data['commal1'].append('0')
-                data['commal2'].append('0')
-                data['commal3'].append('0')
-                data['commal4'].append('0')
+                for c_name in data.keys():
+                    if c_name.startswith('com'):
+                        data[c_name].append('0')
         for k in data.keys():
             self.df_trt[k] = data[k]
         self.df_trt = self.df_trt.dropna(subset=['datok'])
 
-    @staticmethod
-    def get_patient_uri(patient_id, df):
-        for idx, row in df.iterrows():
-            if patient_id in row['upn']:
-                return idx
-        return None
 
-    @staticmethod
-    def get_comorbidities_uri(patient_uri, df):
-        for idx, row in df.iterrows():
-            if patient_uri == row['patient_uri']:
-                return idx
-        return None
+class DhbaData(DicaData):
 
-    def get_date_columns(self):
-        if len(self.date_columns) > 0:
-            return self.date_columns
-        else:
-            for idx, row in self.df_dict_pat.iterrows():
-                if row['TYPE'] == 'datum':
-                    self.date_columns.append(row['VARIABELE NAAM'])
-            for idx, row in self.df_dict_trt.iterrows():
-                if row['TYPE'] == 'datum':
-                    self.date_columns.append(row['VARIABELE NAAM'])
-            for idx, row in self.df_dict_com.iterrows():
-                if row['TYPE'] == 'datum':
-                    self.date_columns.append(row['VARIABELE NAAM'])
-            return self.date_columns
-
-    def get_last_surgery_date(self):
-        self.df.sort_values(by='datok')
-        return self.df.iloc[-1, :]['datok']
-
-    @property
-    def df(self):
-        return self.df_trt
+    def __init__(self, df_pat, df_trt, df_com, df_dict_pat, df_dict_trt, df_dict_com):
+        super().__init__(df_pat, df_trt, df_com, df_dict_pat, df_dict_trt, df_dict_com)
+        data = {
+            'treathosp': [],
+            'geslacht': [],
+            'gebdat': [],
+            'gebjaar': [],
+            'overl': [],
+            'datovl': [],
+            'datcom': [],
+            'commyo': [],
+            'comhartfaal': [],
+            'comlong': [],
+            'comperif': [],
+            'comcva': [],
+            'comdem': [],
+            'comparalys': [],
+            'combind': [],
+            'comgiulcus': [],
+            'comlever': [],
+            'comcirrose': [],
+            'comgalsteen': [],
+            'compsc': [],
+            'comdiam': [],
+            'comnier': [],
+            'comhiv': [],
+            'commalig': [],
+        }
+        for idx, row in self.df_trt.iterrows():
+            patient_id = row['verrichting_upn'].strip()
+            patient_uri = self.get_patient_uri(patient_id, self.df_pat)
+            comorbiditeiten_uri = self.get_comorbidities_uri(patient_uri, self.df_com)
+            data['treathosp'].append('1')
+            data['geslacht'].append(self.df_pat.loc[patient_uri]['geslacht'])
+            data['gebdat'].append(self.df_pat.loc[patient_uri]['gebdat'])
+            data['gebjaar'].append(self.df_pat.loc[patient_uri]['gebjaar'])
+            datovl = self.df_pat.loc[patient_uri]['datovl']
+            data['datovl'].append(datovl)
+            if pd.isna(datovl):
+                data['overl'].append('0')
+            else:
+                data['overl'].append('1')
+            if comorbiditeiten_uri is not None:
+                data['datcom'].append(self.df_com.loc[comorbiditeiten_uri]['datcom'])
+                for c_name in data.keys():
+                    if c_name.startswith('com'):
+                        data[c_name].append(self.df_com.loc[comorbiditeiten_uri][c_name])
+            else:
+                data['datcom'].append(pd.NaT)
+                for c_name in data.keys():
+                    if c_name.startswith('com'):
+                        data[c_name].append('0')
+        for k in data.keys():
+            self.df_trt[k] = data[k]
+        self.df_trt = self.df_trt.dropna(subset=['datok'])
