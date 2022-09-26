@@ -1,7 +1,6 @@
 import math
 import os
 import json
-import loaders
 import datetime
 import numpy as np
 import pandas as pd
@@ -131,6 +130,7 @@ class CastorRecordBuilder:
 
     @staticmethod
     def test():
+        from barbell2.castor import loaders
         cast_loader = loaders.CastorExportFileLoader('/Users/Ralph/Desktop/ESPRESSO_v2.0_DPCA_excel_export_20220902120319.xlsx')
         cast_data = cast_loader.load()
         print(cast_data.get_last_surgery_date())
