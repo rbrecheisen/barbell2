@@ -205,7 +205,9 @@ class DhbaData(DicaData):
         for idx, row in self.df_trt.iterrows():
             patient_id = row['verrichting_upn'].strip()
             patient_uri = self.get_patient_uri(patient_id, self.df_pat)
-            comorbiditeiten_uri = self.get_comorbidities_uri(patient_uri, self.df_com)
+            if patient_uri is None:
+                print(f'Could not find patient URI associated with ID {patient_id}')
+                continue
             data['treathosp'].append('1')
             data['geslacht'].append(self.df_pat.loc[patient_uri]['geslacht'])
             data['gebdat'].append(self.df_pat.loc[patient_uri]['gebdat'])
@@ -216,6 +218,7 @@ class DhbaData(DicaData):
                 data['overl'].append('0')
             else:
                 data['overl'].append('1')
+            comorbiditeiten_uri = self.get_comorbidities_uri(patient_uri, self.df_com)
             if comorbiditeiten_uri is not None:
                 data['datcom'].append(self.df_com.loc[comorbiditeiten_uri]['datcom'])
                 for c_name in data.keys():
