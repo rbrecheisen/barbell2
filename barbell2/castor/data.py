@@ -232,5 +232,8 @@ class DhbaData(DicaData):
                     if c_name.startswith('com'):
                         data[c_name].append('0')
         for k in data.keys():
-            self.df_trt[k] = data[k]
+            try:
+                self.df_trt[k] = data[k]
+            except ValueError as e:
+                print(f'{k}: {str(e)}')
         # self.df_trt = self.df_trt.dropna(subset=['datok'])
