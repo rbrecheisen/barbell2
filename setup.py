@@ -19,6 +19,7 @@ requirements = [
     'pandas',
     'openpyxl',
     'pyside6',
+    'pyopengl',
 ]
 
 setup_requirements = []
