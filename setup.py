@@ -18,6 +18,7 @@ requirements = [
     'matplotlib',
     'pandas',
     'openpyxl',
+    'pyside6',
 ]
 
 setup_requirements = []
