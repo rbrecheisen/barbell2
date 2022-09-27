@@ -50,9 +50,9 @@ setup(
     setup_requires=setup_requirements,
     entry_points={
         'console_scripts': [
-            'bodycomp-adddcmext=barbell2.bodycomp.adddicomextension:main',
-            'bodycomp-decompress=barbell2.bodycomp.decompressdicom:main',
-            'bodycomp-flattendirs=barbell2.bodycomp.flattendirectories:main',
+            'bodycomp-adddcmext=barbell2.bodycomp.adddcmext:main',
+            'bodycomp-decompdcm=barbell2.bodycomp.decompdcm:main',
+            'bodycomp-flattendirs=barbell2.bodycomp.flattendirs:main',
             'bodycomp-copyfiles=barbell2.bodycomp.copyfiles:main',
             'castor-buildimport=barbell2.castor.buildimport:main',
         ],
