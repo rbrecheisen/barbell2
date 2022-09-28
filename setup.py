@@ -20,6 +20,7 @@ requirements = [
     'openpyxl',
     'pyside6',
     'pyopengl',
+    'pygame',
 ]
 
 setup_requirements = []
