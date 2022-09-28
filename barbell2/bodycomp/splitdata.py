@@ -20,6 +20,7 @@ def main():
     if args.nr_folds > 0:
         assert args.nr_folds >= 3, f'Number of cross-validation folds < 3 ({args.nr_folds})'
     os.makedirs(args.output_dir)
+
     # TODO: Shuffle taking DICOM and TAG file pairs into account!!!
     # Load DICOM/TAG file pairs together
     # all_files = []
