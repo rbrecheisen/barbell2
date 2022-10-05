@@ -1,11 +1,20 @@
 import sys
 
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6 import QtWidgets
 
 
-app = QApplication(sys.argv)
-window = QWidget()
-window.show()
+class MainWindow(QtWidgets.QMainWindow):
 
-app.exec()
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle('Hello, world!')
+        label = QtWidgets.QLabel('Bla')
+        label.setMargin(10)
+        self.setCentralWidget(label)
+        self.show()
 
+
+if __name__ == '__main__':
+    app = QtWidgets.QApplication(sys.argv)
+    window = MainWindow()
+    app.exec()

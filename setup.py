@@ -21,6 +21,7 @@ requirements = [
     'pyside6',
     'pyopengl',
     'pygame',
+    'PyInstaller',
 ]
 
 setup_requirements = []
