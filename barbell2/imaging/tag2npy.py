@@ -1,4 +1,4 @@
-from .utils import get_tag_pixels
+from barbell2.imaging.utils import get_tag_pixels
 
 
 class Tag2Numpy:

@@ -22,6 +22,7 @@ requirements = [
     'pyopengl',
     'pygame',
     'PyInstaller',
+    'pynrrd',
 ]
 
 setup_requirements = []
