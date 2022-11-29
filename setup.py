@@ -23,6 +23,8 @@ requirements = [
     'pygame',
     'PyInstaller',
     'pynrrd',
+    'oauthlib',
+    'requests-oauthlib',
 ]
 
 setup_requirements = []
