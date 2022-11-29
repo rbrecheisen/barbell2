@@ -8,7 +8,7 @@ class CastorApiClient:
     token_url = base_url + '/oauth/token'
     api_url = base_url + '/api'
 
-    def __int__(self, client_id, client_secret):
+    def __init__(self, client_id, client_secret):
         self.session = self.create_session(client_id, client_secret)
         self.studies = self.get_studies()
 
