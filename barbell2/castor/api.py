@@ -54,6 +54,10 @@ class CastorApiClient:
         return study_id
 
     def get_records(self, study_id, verbose=False):
+        """ Returns list of records
+        :param study_id Study ID
+        :param verbose
+        """
         record_url = self.api_url + '/study/{}/record'.format(study_id)
         response = self.session.get(record_url)
         response_data = response.json()
@@ -69,6 +73,14 @@ class CastorApiClient:
                     if verbose:
                         print(record)
         return records
+
+    @staticmethod
+    def get_record_id(record):
+        """ Returns record ID for given record object
+        :param record Record object
+        """
+        record_id = record['id']
+        return record_id
 
     def get_fields(self, study_id, verbose=False):
         """ Returns list of field objects defined for the given study
