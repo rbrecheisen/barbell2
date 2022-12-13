@@ -53,7 +53,7 @@ class CastorApiClient:
         study_id = study['study_id']
         return study_id
 
-    def get_records(self, study_id):
+    def get_records(self, study_id, verbose=False):
         record_url = self.api_url + '/study/{}/record'.format(study_id)
         response = self.session.get(record_url)
         response_data = response.json()
@@ -66,12 +66,14 @@ class CastorApiClient:
             for record in response_data['_embedded']['records']:
                 if not record['id'].startswith('ARCHIVED'):
                     records.append(record)
-                    print(record)
+                    if verbose:
+                        print(record)
         return records
 
-    def get_fields(self, study_id):
+    def get_fields(self, study_id, verbose=False):
         """ Returns list of field objects defined for the given study
         :param study_id Study ID
+        :param verbose
         """
         field_url = self.api_url + '/study/{}/field'.format(study_id)
         response = self.session.get(field_url)
@@ -84,7 +86,8 @@ class CastorApiClient:
             response_data = response.json()
             for field in response_data['_embedded']['fields']:
                 fields.append(field)
-                print(field)
+                if verbose:
+                    print(field)
         return fields
 
     @staticmethod
