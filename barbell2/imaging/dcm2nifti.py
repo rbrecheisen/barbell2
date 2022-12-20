@@ -5,9 +5,6 @@ import subprocess
 class Dicom2Nifti:
 
     def __init__(self, dcm_file_dir_or_path, nii_file_path):
-        result = subprocess.check_output('dcm2niix')
-        if result != 0:
-            raise Exception('Tool dcm2niix is not installed!')
         if os.path.isfile(dcm_file_dir_or_path):
             self.merge_option = '-m n'
         else:
