@@ -19,9 +19,11 @@ class Dicom2Nifti:
         else:
             pass
         self.nii_file_dir = items[0]
+        self.cmd = f'dcm2niix {self.merge_option} -z y -f {self.nii_file_name} -o {self.nii_file_dir} {self.dcm_file_dir_or_path}'
 
     def execute(self):
-        os.system(f'dcm2niix {self.merge_option} -z y -f {self.nii_file_name} -o {self.nii_file_dir} {self.dcm_file_dir_or_path}')
+        print(f'Executing command {self.cmd}')
+        os.system(self.cmd)
 
 
 if __name__ == '__main__':
