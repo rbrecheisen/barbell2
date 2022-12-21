@@ -1,0 +1,12 @@
+pydicom
+numpy
+matplotlib
+pandas
+openpyxl
+#pyside6
+#pyopengl
+#pygame
+#PyInstaller
+#pynrrd
+#oauthlib
+#requests-oauthlib
