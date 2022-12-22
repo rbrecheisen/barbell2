@@ -2,7 +2,6 @@ import os
 import shutil
 import pydicom
 import dcmstack
-import npy2png
 
 from dcmstack import dcmmeta
 
