@@ -18,6 +18,7 @@ requirements = [
     'matplotlib',
     'pandas',
     'openpyxl',
+    'nibabel',
     'pyside6',
     'pyopengl',
     'pygame',
