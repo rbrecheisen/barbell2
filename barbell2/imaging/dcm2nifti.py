@@ -34,15 +34,6 @@ class Dicom2NiftiWithHeaderInfo:
 
     def execute(self):
         files = [os.path.join(self.dcm_file_dir, f) for f in os.listdir(self.dcm_file_dir)]
-        print('searching for slice 100...')
-        f_100 = None
-        for f in files:
-            p = pydicom.dcmread(f)
-            if int(p.InstanceNumber) == 100:
-                print('found!')
-                f_100 = f
-                break
-        shutil.copyfile(f_100, '/Users/Ralph/Desktop/f_100.dcm')
         # https://dcmstack.readthedocs.io/en/v0.6.1/Python_Tutorial.html#looking-up-meta-data
         stacks = dcmstack.parse_and_stack(files, group_by='SeriesInstanceUID')
         stack = list(stacks.values())[0]
