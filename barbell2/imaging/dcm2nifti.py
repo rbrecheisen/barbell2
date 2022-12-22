@@ -38,8 +38,6 @@ class Dicom2NiftiWithHeaderInfo:
         stacks = dcmstack.parse_and_stack(files, group_by='SeriesInstanceUID')
         stack = list(stacks.values())[0]
         nii = stack.to_nifti(embed_meta=True)
-        nr_slices = nii.shape[2]
-        print(f'nr. slices: {nr_slices}')
         nii.to_filename(self.nii_file)
         # nii_meta = dcmmeta.NiftiWrapper.from_filename('file.nii.gz')
         # for i in range(nr_slices):
