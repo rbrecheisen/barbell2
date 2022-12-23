@@ -22,15 +22,15 @@ class Dicom2Nifti:
         self.cmd = f'dcm2niix -m y -z y -f {self.nii_file_name} -o {self.nii_file_dir} {self.dcm_file_dir}'
 
     def execute(self):
-        print(f'Executing command {self.cmd}')
+        print(f'Executing command: {self.cmd}')
         os.system(self.cmd)
 
 
 class Dicom2NiftiWithHeaderInfo:
 
-    def __init__(self, dcm_file_dir, nii_file):
+    def __init__(self, dcm_file_dir, nifti_file):
         self.dcm_file_dir = dcm_file_dir
-        self.nii_file = nii_file
+        self.nifti_file = nifti_file
 
     def execute(self):
         files = [os.path.join(self.dcm_file_dir, f) for f in os.listdir(self.dcm_file_dir)]
@@ -38,18 +38,8 @@ class Dicom2NiftiWithHeaderInfo:
         stacks = dcmstack.parse_and_stack(files, group_by='SeriesInstanceUID')
         stack = list(stacks.values())[0]
         nii = stack.to_nifti(embed_meta=True)
-        nii.to_filename(self.nii_file)
-        # nii_meta = dcmmeta.NiftiWrapper.from_filename('file.nii.gz')
-        # for i in range(nr_slices):
-        #     instance_nr = nii_meta.get_meta('InstanceNumber', index=(0, 0, i))
-        #     if instance_nr == 100:
-        #         image = nii_meta.nii_img.dataobj[:,:,i]
-        #         print(f'found image! {image.shape}')
-        #         n2p = npy2png.Numpy2Png(image)
-        #         n2p.set_output_dir('/Users/Ralph/Desktop')
-        #         n2p.set_png_file_name('f_100.dcm.png')
-        #         n2p.execute()
-        #         break
+        nii.to_filename(self.nifti_file)
+        return self.nifti_file
 
 
 if __name__ == '__main__':
