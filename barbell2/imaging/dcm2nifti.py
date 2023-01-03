@@ -1,9 +1,5 @@
 import os
-import shutil
-import pydicom
 import dcmstack
-
-from dcmstack import dcmmeta
 
 
 class Dicom2Nifti:
@@ -44,15 +40,15 @@ class Dicom2NiftiWithHeaderInfo:
 
 if __name__ == '__main__':
     def main():
-        # d2n = Dicom2Nifti(
-        #     '/Users/Ralph/data/scalpel/raw/tlodewick-ct-noise-1/AL_100%/101816478/2-Abdomen',
-        #     '/Users/Ralph/data/scalpel/processed/tlodewick-ct-noise-1-out-1/my_nifti.nii.gz',
-        # )
-        # d2n.execute()
-        # print(os.listdir('/Users/Ralph/data/scalpel/processed/tlodewick-ct-noise-1-out-1'))
-        d2n = Dicom2NiftiWithHeaderInfo(
-            '/Users/Ralph/Desktop/itk/ct-abdomen',
-            '/Users/Ralph/Desktop/itk/out/ct-abdomen.nii.gz',
+        d2n = Dicom2Nifti(
+            '/Users/Ralph/Desktop/l3select/ct-abdomen',
+            '/Users/Ralph/Desktop/l3select/ct-abdomen.nii.gz',
         )
         d2n.execute()
+        d2n.print_metainfo()
+        # d2n = Dicom2NiftiWithHeaderInfo(
+        #     '/Users/Ralph/Desktop/itk/ct-abdomen',
+        #     '/Users/Ralph/Desktop/itk/out/ct-abdomen.nii.gz',
+        # )
+        # d2n.execute()
     main()
