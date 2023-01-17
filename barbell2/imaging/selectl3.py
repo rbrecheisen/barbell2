@@ -15,6 +15,7 @@ class L3Selector:
         :param dicom_series_dir: Folder containing all (and only) DICOM files for a given series
         :param nifti_image: File path to NIFTI file created from DICOM series
         :param nifti_roi: File path to NIFTI region-of-interest for segmented L3 vertebral body
+        :param alpha: 
         :return: File path to the L3 image
         """
         self.dicom_series_dir = dicom_series_dir
@@ -41,10 +42,15 @@ class L3Selector:
         return i_min, i_max
 
     @staticmethod
-    def get_min_max_z_coord_patient_position_nifti_image(i_min, i_max, nifti_image):
+    def get_z_coord_patient_position_nifti_image(i, nifti_image):
         M = nifti_image.affine[:3, :3]
         abc = nifti_image.affine[:3, 3]
-        return (M.dot([0, 0, i_min]) + abc)[2], (M.dot([0, 0, i_max]) + abc)[2]
+        return (M.dot([0, 0, i]) + abc)[2]
+
+    def get_min_max_z_coord_patient_position_nifti_image(self, i_min, i_max, nifti_image):
+        z_min = self.get_z_coord_patient_position_nifti_image(i_min, nifti_image)
+        z_max = self.get_z_coord_patient_position_nifti_image(i_max, nifti_image)
+        return z_min, z_max
 
     @staticmethod
     def calculate_estimated_z_coord_l3(z_min, z_max, alpha):
@@ -70,11 +76,16 @@ class L3Selector:
         i_min, i_max = self.get_min_max_slice_idx_nifti_roi(nifti_roi)
         nifti_image = nibabel.load(self.nifti_image)
         z_min, z_max = self.get_min_max_z_coord_patient_position_nifti_image(i_min, i_max, nifti_image)
-        z_estimated = self.calculate_estimated_z_coord_l3(z_min, z_max, self.alpha)
-        print(f'i_min: {i_min}, i_max: {i_max}, z_min: {z_min}, z_max: {z_max}, z_estimated: {z_estimated}')
-        l3_path = self.get_nearest_dicom_image_for_estimated_z_coord(self.dicom_series_dir, z_estimated)
-        print(f'Found L3: {l3_path}')
-        return l3_path
+        if self.alpha == 'top-middle-bottom':
+            return []
+        elif self.alpha == 'all':
+            return []
+        else:
+            z_estimated = self.calculate_estimated_z_coord_l3(z_min, z_max, self.alpha)
+            print(f'i_min: {i_min}, i_max: {i_max}, z_min: {z_min}, z_max: {z_max}, z_estimated: {z_estimated}')
+            l3_path = self.get_nearest_dicom_image_for_estimated_z_coord(self.dicom_series_dir, z_estimated)
+            print(f'Found L3: {l3_path}')
+            return l3_path
 
 
 if __name__ == '__main__':
