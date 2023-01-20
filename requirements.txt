@@ -12,3 +12,4 @@ nibabel
 #oauthlib
 #requests-oauthlib
 pynrrd
+h5py

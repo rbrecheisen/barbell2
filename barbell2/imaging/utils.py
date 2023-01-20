@@ -152,6 +152,22 @@ def get_alberta_color_map():
     return color_map
 
 
+def update_labels(pixels):
+    # http://www.tomovision.com/Sarcopenia_Help/index.htm
+    labels_to_keep = [0, 1, 5, 7]
+    labels_to_remove = [2, 12, 14]
+    for label in np.unique(pixels):
+        if label in labels_to_remove:
+            pixels[pixels == label] = 0
+    for label in np.unique(pixels):
+        if label not in labels_to_keep:
+            return None
+    if len(np.unique(pixels)) != 4:
+        print('Incorrect nr. of labels: {}'.format(len(np.unique(pixels))))
+        return None
+    return pixels
+
+
 def apply_window(pix, window):
     result = (pix - window[1] + 0.5 * window[0])/window[0]
     result[result < 0] = 0

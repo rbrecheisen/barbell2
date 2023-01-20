@@ -1,6 +1,4 @@
 import os
-import shutil
-import pydicom
 import subprocess
 
 # import dcmstack
@@ -58,6 +56,7 @@ if __name__ == '__main__':
         )
         d2n.execute()
         print(os.listdir('/Users/Ralph/data/scalpel/processed/tlodewick-ct-noise-1-out-1'))
+        d2n.print_metainfo()
         # d2n = Dicom2NiftiWithHeaderInfo(
         #     '/Users/Ralph/Desktop/itk/ct-abdomen',
         #     '/Users/Ralph/Desktop/itk/out/ct-abdomen.nii.gz',
