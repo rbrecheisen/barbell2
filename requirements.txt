@@ -11,3 +11,4 @@ nibabel
 #pynrrd
 #oauthlib
 #requests-oauthlib
+h5py
