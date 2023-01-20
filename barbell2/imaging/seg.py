@@ -1,4 +1,6 @@
 import os
+import subprocess
+
 
 class TotalSegmentator:
 
@@ -8,6 +10,14 @@ class TotalSegmentator:
         self.fast = False
         self.statistics = True
         self.radiomics = False
+        # Check installation of Total Segmentator 
+        try:
+            subprocess.call(['TotalSegmentator'])
+        except FileNotFoundError:
+            print(
+                'TotalSegmentator is not installed!\n'
+                'Please install it using pip install pytorch totalsegmentator'
+            )
 
     def execute(self):
         fast = ''
@@ -19,6 +29,7 @@ class TotalSegmentator:
         radiomics = ''
         if self.radiomics:
             radiomics = '--radiomics'
+        # Build command
         cmd = 'TotalSegmentator {} {} {} -i {} -o {}'.format(
             statistics, 
             radiomics,
@@ -30,43 +41,7 @@ class TotalSegmentator:
         os.system(cmd)
 
 
-class RoiSliceExtractor:
-    """ Extracts all slices (as a list of 2D NumPy arrays) in the source NIFTI 
-    image that intersect the given ROI. Additionally, it outputs corresponding
-    array indexes and DICOM instance numbers, if available in the source image's
-    meta data. This requires that the NIFTI image was created from a DICOM series
-    using the meta-data option.
-
-    Outputs:
-    - List of 2D Numpy arrays
-    - List of z- or depth indexes pointing to the 2D arrays inside the volume
-    - (optional) List of DICOM instance numbers
-     """
-    def __init__(self, nifti_path, roi_path):
-        self.nifti_path = nifti_path
-        self.roi_path = roi_path
-
-    def execute(self):
-        pass
-
-
-class RoiRadiomicsExtractor:
-    """ Calculates number of radiomics features on the given ROI. 
-    """
-    def __init__(self, roi_path):
-        pass
-
-    def execute(self):
-        pass
-
-    def get_volume(self):
-        pass
-
-    def get_mean_pixel_value(self):
-        pass
-
-
 if __name__ == '__main__':
     def main():
-        pass
+        ts = TotalSegmentator('', '')
     main()

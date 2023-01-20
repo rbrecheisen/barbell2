@@ -5,7 +5,7 @@ from barbell2.imaging.utils import apply_window
 
 class Dicom2Numpy:
 
-    def __init__(self, dcm_file_path_or_obj):
+    def __init__(self, dcm_file_path_or_obj):        
         self.dcm_file_path_or_obj = dcm_file_path_or_obj
         self.npy_array = None
         self.window = None
@@ -15,6 +15,7 @@ class Dicom2Numpy:
         self.window = window
 
     def set_normalize_enabled(self, normalize_enabled):
+        """ Moves CT pixel values from e.g., (-1000, 1000) to (0, 2000)"""
         self.normalize_enabled = normalize_enabled
 
     def is_normalize_enabled(self):
