@@ -1,6 +1,10 @@
+import json
+import logging
+
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
 
+logger = logging.getLogger('__name__')
 
 class CastorApiClient:
 
@@ -8,15 +12,24 @@ class CastorApiClient:
     token_url = base_url + '/oauth/token'
     api_url = base_url + '/api'
 
-    def __init__(self, client_id, client_secret):
+    def __init__(self, client_id, client_secret, verbose=False):
         self.session = self.create_session(client_id, client_secret)
         self.studies = self.get_studies()
+        self.verbose = verbose
+        if self.verbose:
+            logger.info(f'__init__()')
 
     def create_session(self, client_id, client_secret):
         """ Creates new session to communicate with Castor database REST API
         :param client_id
         :param client_secret
         """
+        if self.verbose:
+            logger.info(f'create_session('
+                'client_id={client_id}, '
+                'client_secret={client_secret}, '
+                'token_url={self.token_url})'
+            )
         client = BackendApplicationClient(client_id=client_id)
         client_session = OAuth2Session(client=client)
         client_session.fetch_token(
@@ -29,8 +42,13 @@ class CastorApiClient:
     def get_studies(self):
         """ Returns list of study objects
         """
-        response = self.session.get(self.api_url + '/study')
+        uri = self.api_url + '/study'
+        if self.verbose:
+            print(f'get_studies() uri={uri}')
+        response = self.session.get(uri)
         response_data = response.json()
+        if self.verbose:
+            print(f'get_studies() response_data={json.dumps(response_data, index=4)}')
         studies = []
         for study in response_data['_embedded']['study']:
             studies.append(study)
@@ -40,16 +58,20 @@ class CastorApiClient:
         """ Returns study object for given name
         :param name Study name
         """
+        if self.verbose:
+            print(f'get_study(name={name}')
         for study in self.studies:
             if study['name'] == name:
                 return study
         return None
 
-    @staticmethod
-    def get_study_id(study):
+    def get_study_id(self, study):
         """ Returns study ID for given study object
         :param study Study object
         """
+        if self.verbose:
+            if 'study_id' not in study.keys():
+                print(f'get_study_id(study={study}) missing key study_id')
         study_id = study['study_id']
         return study_id
 
