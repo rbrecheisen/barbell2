@@ -28,7 +28,6 @@ class Dicom2Numpy:
         else:
             p = self.dcm_file_path_or_obj
         pixels = p.pixel_array
-        print(f'dcm2npy: pixels shape = {pixels.shape}')
         self.npy_array = pixels.reshape(p.Rows, p.Columns)
         if self.is_normalize_enabled():
             b = p.RescaleIntercept

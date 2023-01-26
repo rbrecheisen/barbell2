@@ -2,6 +2,7 @@ import os
 import h5py
 import argparse
 import numpy as np
+import matplotlib.pyplot as plt
 
 from barbell2.imaging.dcm2npy import Dicom2Numpy
 from barbell2.imaging.tag2npy import Tag2Numpy
@@ -19,12 +20,15 @@ def get_tag_pixels_for_dcm(f, shape):
         f_tag = f[:-4] + '.tag'
     else:
         f_tag = f + '.tag'
+    if not os.path.isfile(f_tag):
+        return None
     t2n = Tag2Numpy(f_tag, shape)
     return t2n.execute()
 
 
 def has_correct_labels(pixels):
     labels = np.unique(pixels)
+    print(labels)
     if 0 in labels and 1 in labels and 5 in labels and 7 in labels:
         return True
     return False
@@ -44,6 +48,9 @@ def main():
             if is_dicom_file(f_path):
                 dcm_pixels = get_dcm_pixels(f_path)
                 tag_pixels = get_tag_pixels_for_dcm(f_path, (args.rows, args.cols))
+                if tag_pixels is None:
+                    print('Could not find TAG file for DICOM, skipping...')
+                    continue
                 if has_correct_labels(tag_pixels):
                     tag_pixels = update_labels(tag_pixels)
                     idd = ':04d'.format(count)
@@ -53,8 +60,32 @@ def main():
                     print(f'{idd}: added {f_path}')
                     count += 1
                 else:
-                    print(f'[ERROR] missing labels for {f_path}')
+                    # print(f'[ERROR] missing labels for {f_path}')
+                    pass
     print(f'Created HDF5 based on {count} patients')
+
+
+def check_labels():
+    data_dir = '/Users/Ralph/data/scalpel/raw/gkroft-colorectal-t4-1'
+    # data_dir = '/Users/Ralph/data/scalpel/raw/l3-cohorts-1/SURG-PANC'
+    for f in os.listdir(data_dir):
+        # if f.endswith('.dcm') and not f.startswith('._'):
+        #     print(f)
+        #     d2n = Dicom2Numpy(os.path.join(data_dir, f))
+        #     pixels = d2n.execute()
+        #     plt.imshow(pixels, cmap='gray')
+        #     plt.show()
+        if f.endswith('.tag') and not f.startswith('._'):
+            t2n = Tag2Numpy(os.path.join(data_dir, f), shape=(512, 512))
+            pixels = t2n.execute()
+            labels = np.unique(pixels)
+            print(labels)
+            pixels_masked = pixels.copy()
+            pixels_masked[pixels_masked != 7] = 0
+            pixels_masked[pixels_masked == 7] = 1
+            plt.imshow(pixels_masked)
+            plt.show()
+            break
 
 
 
@@ -66,4 +97,5 @@ if __name__ == '__main__':
         '--rows=512',
         '--cols=512',
     ])
-    main()
+    # main()
+    check_labels()
