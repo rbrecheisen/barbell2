@@ -13,11 +13,11 @@ class CastorApiClient:
     api_url = base_url + '/api'
 
     def __init__(self, client_id, client_secret, verbose=False):
-        self.session = self.create_session(client_id, client_secret)
-        self.studies = self.get_studies()
         self.verbose = verbose
         if self.verbose:
             logger.info(f'__init__()')
+        self.session = self.create_session(client_id, client_secret)
+        self.studies = self.get_studies()
 
     def create_session(self, client_id, client_secret):
         """ Creates new session to communicate with Castor database REST API
