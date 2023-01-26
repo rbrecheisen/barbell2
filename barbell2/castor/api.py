@@ -121,6 +121,14 @@ class CastorApiClient:
         field_id = field['id']
         return field_id
 
+    @staticmethod
+    def get_field_type(field):
+        """ Returns field type for given field object
+        :param field Field object
+        """
+        field_type = field['']
+        return field_type
+
     def get_field_value(self, study_id, record_id, field_id):
         """ Returns value for given field, record and study
         :param study_id Study ID
