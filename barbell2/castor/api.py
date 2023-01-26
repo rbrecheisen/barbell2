@@ -148,7 +148,7 @@ class CastorApiClient:
         """ Returns field type for given field object
         :param field Field object
         """
-        field_type = field['']
+        field_type = field['field_type']
         return field_type
 
     def get_field_value(self, study_id, record_id, field_id):
