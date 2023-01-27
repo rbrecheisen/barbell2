@@ -13,11 +13,11 @@ class CastorApiClient:
     api_url = base_url + '/api'
 
     def __init__(self, client_id, client_secret, verbose=False):
-        self.session = self.create_session(client_id, client_secret)
-        self.studies = self.get_studies()
         self.verbose = verbose
         if self.verbose:
             logger.info(f'__init__()')
+        self.session = self.create_session(client_id, client_secret)
+        self.studies = self.get_studies()
 
     def create_session(self, client_id, client_secret):
         """ Creates new session to communicate with Castor database REST API
@@ -75,7 +75,7 @@ class CastorApiClient:
         study_id = study['study_id']
         return study_id
 
-    def get_records(self, study_id, verbose=False):
+    def get_records(self, study_id):
         """ Returns list of records
         :param study_id Study ID
         :param verbose
@@ -92,7 +92,7 @@ class CastorApiClient:
             for record in response_data['_embedded']['records']:
                 if not record['id'].startswith('ARCHIVED'):
                     records.append(record)
-                    if verbose:
+                    if self.verbose:
                         print(record)
         return records
 
@@ -104,7 +104,7 @@ class CastorApiClient:
         record_id = record['id']
         return record_id
 
-    def get_fields(self, study_id, verbose=False):
+    def get_fields(self, study_id):
         """ Returns list of field objects defined for the given study
         :param study_id Study ID
         :param verbose
@@ -120,7 +120,7 @@ class CastorApiClient:
             response_data = response.json()
             for field in response_data['_embedded']['fields']:
                 fields.append(field)
-                if verbose:
+                if self.verbose:
                     print(field)
         return fields
 
@@ -142,6 +142,14 @@ class CastorApiClient:
         """
         field_id = field['id']
         return field_id
+
+    @staticmethod
+    def get_field_type(field):
+        """ Returns field type for given field object
+        :param field Field object
+        """
+        field_type = field['field_type']
+        return field_type
 
     def get_field_value(self, study_id, record_id, field_id):
         """ Returns value for given field, record and study

@@ -11,7 +11,7 @@ if [ "$?" == "1" ]; then
   if [ "${line}" != "install" ]; then
     exit 0
   fi
-  python -m pip install twine
+  python -m pip install twine wheel
 fi
 if [ ! -f "${HOME}/pypiuser.txt" ]; then
   echo "Could not find ${HOME}/pypiuser.txt"

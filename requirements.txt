@@ -9,7 +9,7 @@ nibabel
 #pygame
 #PyInstaller
 #pynrrd
-#oauthlib
-#requests-oauthlib
+oauthlib
+requests-oauthlib
 pynrrd
 h5py
