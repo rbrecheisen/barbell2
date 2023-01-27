@@ -152,5 +152,7 @@ class CastorApiClient:
         field_data_url = self.api_url + '/study/{}/record/{}/study-data-point/{}'.format(study_id, record_id, field_id)
         response = self.session.get(field_data_url)
         response_data = response.json()
-        field_value = response_data['value']
-        return field_value
+        # Check for 'value' key because if field is empty, there will be no 'value' key
+        if 'value' in response_data.keys():
+            return response_data['value']
+        return None

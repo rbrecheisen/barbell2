@@ -69,22 +69,22 @@ def check_labels():
     data_dir = '/Users/Ralph/data/scalpel/raw/gkroft-colorectal-t4-1'
     # data_dir = '/Users/Ralph/data/scalpel/raw/l3-cohorts-1/SURG-PANC'
     for f in os.listdir(data_dir):
+        print(f)
         # if f.endswith('.dcm') and not f.startswith('._'):
-        #     print(f)
         #     d2n = Dicom2Numpy(os.path.join(data_dir, f))
         #     pixels = d2n.execute()
         #     plt.imshow(pixels, cmap='gray')
-        #     plt.show()
+        #     plt.savefig('/Users/Ralph/Desktop/files/{}.png'.format(f))
         if f.endswith('.tag') and not f.startswith('._'):
             t2n = Tag2Numpy(os.path.join(data_dir, f), shape=(512, 512))
             pixels = t2n.execute()
             labels = np.unique(pixels)
             print(labels)
             pixels_masked = pixels.copy()
-            pixels_masked[pixels_masked != 7] = 0
-            pixels_masked[pixels_masked == 7] = 1
+            pixels_masked[pixels_masked != 1] = 0
+            pixels_masked[pixels_masked == 1] = 1
             plt.imshow(pixels_masked)
-            plt.show()
+            plt.savefig('/Users/Ralph/Desktop/{}.png'.format(f))
             break
 
 
