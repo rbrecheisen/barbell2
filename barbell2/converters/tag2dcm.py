@@ -1,8 +1,8 @@
 import os
 import pydicom
 
-from barbell2.imaging.utils import create_fake_dicom
-from barbell2.imaging.tag2npy import Tag2Numpy
+from barbell2.utils import create_fake_dicom
+from barbell2.converters.tag2npy import Tag2Numpy
 
 
 class Tag2Dicom:

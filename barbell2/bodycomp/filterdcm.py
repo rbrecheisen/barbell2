@@ -4,7 +4,7 @@ import pydicom
 import pydicom.errors
 import argparse
 
-from barbell2.imaging.utils import get_tag_file_for_dicom
+from barbell2.utils import get_tag_file_for_dicom
 
 
 def get_variable_operator_value(vc):

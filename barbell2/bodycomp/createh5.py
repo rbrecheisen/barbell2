@@ -4,9 +4,9 @@ import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
-from barbell2.imaging.dcm2npy import Dicom2Numpy
-from barbell2.imaging.tag2npy import Tag2Numpy
-from barbell2.imaging.utils import update_labels, is_dicom_file
+from barbell2.converters.dcm2npy import Dicom2Numpy
+from barbell2.converters.tag2npy import Tag2Numpy
+from barbell2.utils import update_labels, is_dicom_file
 
 
 def get_dcm_pixels(f):

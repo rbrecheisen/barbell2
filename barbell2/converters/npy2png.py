@@ -2,7 +2,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
-from barbell2.imaging.utils import apply_color_map, get_alberta_color_map
+from barbell2.utils import apply_color_map, get_alberta_color_map
 
 
 class Numpy2Png:

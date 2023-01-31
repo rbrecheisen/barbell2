@@ -2,7 +2,7 @@ import os
 import pydicom
 import numpy as np
 
-from barbell2.imaging.utils import get_alberta_color_map, create_fake_dicom
+from barbell2.utils import get_alberta_color_map, create_fake_dicom
 
 
 class Numpy2Dicom:

@@ -1,5 +1,8 @@
 import os
 import subprocess
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class TotalSegmentator:
@@ -14,7 +17,7 @@ class TotalSegmentator:
         try:
             subprocess.call(['TotalSegmentator'])
         except FileNotFoundError:
-            print(
+            logger.error(
                 'TotalSegmentator is not installed!\n'
                 'Please install it using pip install pytorch totalsegmentator'
             )
@@ -37,7 +40,7 @@ class TotalSegmentator:
             self.nifti_path,
             self.output_dir,
         )
-        print(f'Running command: {cmd}')
+        logger.info(f'Running command: {cmd}')
         os.system(cmd)
 
 

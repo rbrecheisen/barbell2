@@ -18,7 +18,7 @@ class Numpy2Nrrd:
 
 
 def main():
-    from barbell2.imaging.tag2npy import Tag2Numpy
+    from barbell2.converters.tag2npy import Tag2Numpy
     t2n = Tag2Numpy('data/file.tag', shape=(512, 512))
     npy_array = t2n.execute()
     print(np.unique(npy_array))

@@ -1,6 +1,6 @@
 import pydicom
 
-from barbell2.imaging.utils import apply_window
+from barbell2.utils import apply_window
 
 
 class Dicom2Numpy:
