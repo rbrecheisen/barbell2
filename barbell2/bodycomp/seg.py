@@ -123,7 +123,8 @@ class MuscleFatSegmentator:
                     segmentation_file = os.path.join(self.output_directory, f'{f_name}.seg.prob.npy')
                     self.output_segmentation_files.append(segmentation_file)
                     np.save(segmentation_file, pred_squeeze)
-                break
+                else:
+                    logger.warn(f'Unknown mode {self.mode}')
             else:
                 logger.warning(f'File {f} is not a valid DICOM file')
         return self.output_segmentation_files
