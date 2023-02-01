@@ -7,7 +7,10 @@ logger = logging.getLogger(__name__)
 
 class RoiSelector:
 
+    VERTEBRAE_T4 = 'vertebrae_T4.nii.gz'
+    VERTEBRAE_L2 = 'vertebrae_L2.nii.gz'
     VERTEBRAE_L3 = 'vertebrae_L3.nii.gz'
+    VERTEBRAE_L4 = 'vertebrae_L4.nii.gz'
 
     def __init__(self):
         self.input_directory = None

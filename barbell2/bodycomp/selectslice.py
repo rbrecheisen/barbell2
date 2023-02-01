@@ -18,10 +18,11 @@ class SliceSelector:
         self.input_volume = None
         self.input_dicom_directory = None
         self.mode = None
-        self.output_file = None
+        self.output_files = None
 
+    @staticmethod
     def has_duplicate_objects(roi):
-        pass
+        return False
 
     @staticmethod
     def get_min_max_slice_idx(roi):
@@ -52,6 +53,7 @@ class SliceSelector:
         z_max = self.get_z_coord_patient_position(i_max, volume)
         return z_min, z_max
 
+    @staticmethod
     def get_dicom_z(file_path):
         p = pydicom.dcmread(file_path, stop_before_pixels=True)
         return p.ImagePositionPatient[2]
@@ -66,7 +68,7 @@ class SliceSelector:
         z_max_nearest = min(list(z_coords.keys()), key=lambda x:abs(x - z_max))
         file_paths = []
         for z in z_coords.keys():
-            if z_min_nearest >= z >= z_max_nearest:
+            if z_min_nearest <= z <= z_max_nearest:
                 file_paths.append(z_coords[z])
         return file_paths
 
@@ -90,32 +92,44 @@ class SliceSelector:
         i_min, i_max = self.get_min_max_slice_idx(roi)
         volume = nibabel.load(self.input_volume)
         z_min, z_max = self.get_min_max_z_coord_patient_position(i_min, i_max, volume)
-        file_paths = []
+        self.output_files = []
         if self.mode == SliceSelector.ALL:
-            file_paths = self.get_dicom_images_between(z_min, z_max, self.input_dicom_directory)
+            self.output_files = self.get_dicom_images_between(z_min, z_max, self.input_dicom_directory)
         elif self.mode == SliceSelector.MEDIAN:
             z_median = z_min + np.abs(z_max - z_min) * 0.50
-            file_paths = self.get_dicom_images_between(z_median, z_median, self.input_dicom_directory)
+            self.output_files = self.get_dicom_images_between(z_median, z_median, self.input_dicom_directory)
         elif self.mode == SliceSelector.IQR_25_50_75:
             z_25 = z_min + np.abs(z_max - z_min) * 0.25
-            file_paths.extend(self.get_dicom_images_between(z_25, z_25, self.input_dicom_directory)[0])
+            self.output_files.extend(self.get_dicom_images_between(z_25, z_25, self.input_dicom_directory))
             z_50 = z_min + np.abs(z_max - z_min) * 0.50
-            file_paths.extend(self.get_dicom_images_between(z_50, z_50, self.input_dicom_directory)[0])
+            self.output_files.extend(self.get_dicom_images_between(z_50, z_50, self.input_dicom_directory))
             z_75 = z_min + np.abs(z_max - z_min) * 0.75
-            file_paths.extend(self.get_dicom_images_between(z_75, z_75, self.input_dicom_directory)[0])
+            self.output_files.extend(self.get_dicom_images_between(z_75, z_75, self.input_dicom_directory))
+        elif isinstance(self.mode, float):
+            z = z_min + self.mode * (z_max - z_min)
+            self.output_files = self.get_dicom_images_between(z, z, self.input_dicom_directory)
         else:
             logger.error(f'Unknown mode: {self.mode}')
-        return file_paths
+        return self.output_files
+
+    def get_dicom_image_at_instance_number(self, instance_number):
+        for f in os.listdir(self.input_dicom_directory):
+            f_path = os.path.join(self.input_dicom_directory, f)
+            p = pydicom.dcmread(f_path, stop_before_pixels=True)
+            if p.InstanceNumber == instance_number:
+                return f_path
+        return None
 
 
 if __name__ == '__main__':
     def main():
         selector = SliceSelector()
-        selector.input_roi = '/Users/Ralph/Desktop/auto-vs-manual-l3/segmentations/al/vertebrae_L3.nii.gz'
-        selector.input_volume = '/Users/Ralph/Desktop/auto-vs-manual-l3/scans_prep_nifti/al.nii.gz'
-        selector.input_dicom_directory = '/Users/Ralph/Desktop/auto-vs-manual-l3/scans_prep/al'
-        selector.mode = SliceSelector.MEDIAN
+        selector.input_roi = '/Users/ralph/SURF Drive/dropbox/segmentations/vertebrae_L3.nii.gz'
+        selector.input_volume = '/Users/ralph/SURF Drive/dropbox/nifti/al.nii.gz'
+        selector.input_dicom_directory = '/Users/ralph/SURF Drive/dropbox/dicom'
+        # selector.mode = SliceSelector.ALL
+        selector.mode = 0.68
         file_paths = selector.execute()
-        for f in file_paths:
-            print(f)
+        import shutil
+        shutil.copyfile(file_paths[0], f'/Users/ralph/Desktop/SliceSelector/L3.dcm')
     main()
