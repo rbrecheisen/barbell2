@@ -2,34 +2,10 @@ import os
 import logging
 
 from barbell2.converters import DicomToNifti
-from barbell2.bodycomp import TotalSegmentator, RoiSelector, SliceSelector
+from barbell2.bodycomp import TotalSegmentator, RoiSelector, SliceSelector, \
+    MuscleFatSegmentator, BodyCompositionCalculator
 
 logger = logging.getLogger(__name__)
-
-
-
-class MuscleFatSegmentator:
-
-    def __init__(self):
-        self.input_files = None
-        self.image_dimensions = None
-        self.model = None
-        self.output_segmentation_files = None
-
-    def execute():
-        pass
-
-
-class BodyCompositionCalculator:
-
-    def __init__(self):
-        self.input_files = None
-        self.segmentation_files = None
-        self.heights = None
-        self.output_metrics = None
-
-    def execute(self):
-        pass
 
 
 d2n = DicomToNifti()
