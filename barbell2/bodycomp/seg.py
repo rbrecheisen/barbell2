@@ -115,7 +115,11 @@ if __name__ == '__main__':
         # segmentator.input_files = ['/Users/ralph/Desktop/SliceSelector/L3.dcm']
         segmentator.input_files = ['/mnt/localscratch/cds/rbrecheisen/raw/pancreas-demo-1/1.dcm']
         segmentator.image_dimensions = (512, 512)
-        segmentator.model_files = []
+        segmentator.model_files = [
+            '/mnt/localscratch/cds/rbrecheisen/models/v2/model.zip',
+            '/mnt/localscratch/cds/rbrecheisen/models/v2/contour_model.zip',
+            '/mnt/localscratch/cds/rbrecheisen/models/v2/params.json',
+        ]
         segmentator.mode = MuscleFatSegmentator.ARGMAX
         files = segmentator.execute()
         for f in files:
