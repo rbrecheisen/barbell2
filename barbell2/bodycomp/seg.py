@@ -113,11 +113,16 @@ class MuscleFatSegmentator:
                 img2 = np.expand_dims(img2, -1)
                 pred = model.predict([img2])
                 pred_squeeze = np.squeeze(pred)
-                pred_max = pred_squeeze.argmax(axis=-1)
-                pred_max = self.convert_labels_to_157(pred_max)
-                segmentation_file = os.path.join(self.output_directory, f'{f_name}.seg.npy')
-                self.output_segmentation_files.append(segmentation_file)
-                np.save(segmentation_file, pred_max)
+                if self.mode == MuscleFatSegmentator.ARGMAX:
+                    pred_max = pred_squeeze.argmax(axis=-1)
+                    pred_max = self.convert_labels_to_157(pred_max)
+                    segmentation_file = os.path.join(self.output_directory, f'{f_name}.seg.npy')
+                    self.output_segmentation_files.append(segmentation_file)
+                    np.save(segmentation_file, pred_max)
+                elif self.mode == MuscleFatSegmentator.PROBABILITIES:
+                    segmentation_file = os.path.join(self.output_directory, f'{f_name}.seg.prob.npy')
+                    self.output_segmentation_files.append(segmentation_file)
+                    np.save(segmentation_file, pred_squeeze)
                 break
             else:
                 logger.warning(f'File {f} is not a valid DICOM file')
@@ -135,7 +140,8 @@ if __name__ == '__main__':
             '/mnt/localscratch/cds/rbrecheisen/models/v2/contour_model.zip',
             '/mnt/localscratch/cds/rbrecheisen/models/v2/params.json',
         ]
-        segmentator.mode = MuscleFatSegmentator.ARGMAX
+        # segmentator.mode = MuscleFatSegmentator.ARGMAX
+        segmentator.mode = MuscleFatSegmentator.PROBABILITIES
         segmentator.output_directory = '/tmp/barbell2/bodycomp/seg.py'
         files = segmentator.execute()
         for f in files:
