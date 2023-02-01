@@ -112,7 +112,8 @@ class MuscleFatSegmentator:
 if __name__ == '__main__':
     def main():
         segmentator = MuscleFatSegmentator()
-        segmentator.input_files = ['/Users/ralph/Desktop/SliceSelector/L3.dcm']
+        # segmentator.input_files = ['/Users/ralph/Desktop/SliceSelector/L3.dcm']
+        segmentator.input_files = ['/mnt/localscratch/cds/rbrecheisen/raw/pancreas-demo-1/1.dcm']
         segmentator.image_dimensions = (512, 512)
         segmentator.model_files = []
         segmentator.mode = MuscleFatSegmentator.ARGMAX
