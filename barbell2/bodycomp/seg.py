@@ -113,6 +113,7 @@ class MuscleFatSegmentator:
                 img2 = np.expand_dims(img2, -1)
                 pred = model.predict([img2])
                 pred_squeeze = np.squeeze(pred)
+                print(pred_squeeze[256][256])
                 if self.mode == MuscleFatSegmentator.ARGMAX:
                     pred_max = pred_squeeze.argmax(axis=-1)
                     pred_max = self.convert_labels_to_157(pred_max)
