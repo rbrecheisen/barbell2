@@ -20,13 +20,15 @@ class MuscleFatSegmentator:
         self.image_dimensions = None
         self.model_files = None
         self.mode = MuscleFatSegmentator.ARGMAX
+        self.output_directory = None
         self.output_segmentation_files = None
 
     @staticmethod
     def load_model(file_path):
         import tensorflow as tf
         file_name = os.path.split(file_path)[1]
-        model_directory = os.path.abspath(os.path.curdir + f'/{file_name[:-4]}')
+        model_directory = '/tmp/barbell2/bodycomp/seg.py'
+        os.makedirs(model_directory, exist_ok=True)
         with zipfile.ZipFile(file_path) as zip_obj:
             zip_obj.extractall(path=model_directory)
         return tf.keras.models.load_model(model_directory, compile=False)
@@ -89,6 +91,10 @@ class MuscleFatSegmentator:
         if self.model_files is None:
             logger.error('Model files not specified')
             return None
+        if self.output_directory is None:
+            logger.error('Output directory not specified')
+            return None
+        os.makedirs(self.output_directory, exist_ok=True)
         model, contour_model, params = self.load_model_files()
         self.output_segmentation_files = []
         for f in self.input_files:
@@ -109,7 +115,7 @@ class MuscleFatSegmentator:
                 pred_squeeze = np.squeeze(pred)
                 pred_max = pred_squeeze.argmax(axis=-1)
                 pred_max = self.convert_labels_to_157(pred_max)
-                segmentation_file = os.path.join(os.path.abspath(os.path.curdir), f'{f_name}.seg.npy')
+                segmentation_file = os.path.join(self.output_directory, f'{f_name}.seg.npy')
                 self.output_segmentation_files.append(segmentation_file)
                 np.save(segmentation_file, pred_max)
                 break
@@ -130,6 +136,7 @@ if __name__ == '__main__':
             '/mnt/localscratch/cds/rbrecheisen/models/v2/params.json',
         ]
         segmentator.mode = MuscleFatSegmentator.ARGMAX
+        segmentator.output_directory = '/tmp/barbell2/bodycomp/seg.py'
         files = segmentator.execute()
         for f in files:
             print(f)
