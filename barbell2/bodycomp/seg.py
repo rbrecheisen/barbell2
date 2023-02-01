@@ -90,7 +90,9 @@ class MuscleFatSegmentator:
             logger.error('Model files not specified')
             return None
         model, contour_model, params = self.load_model_files()
+        self.output_segmentation_files = []
         for f in self.input_files:
+            f_name = os.path.split(f)[1]
             if is_dicom_file(f):
                 p = pydicom.dcmread(f)
                 img1 = get_pixels(p, normalize=True)
@@ -105,12 +107,15 @@ class MuscleFatSegmentator:
                 img2 = np.expand_dims(img2, -1)
                 pred = model.predict([img2])
                 pred_squeeze = np.squeeze(pred)
-                print(pred_squeeze.shape)
                 pred_max = pred_squeeze.argmax(axis=-1)
                 pred_max = self.convert_labels_to_157(pred_max)
+                segmentation_file = os.path.join(os.path.abspath(os.path.curdir), f'{f_name}.seg.npy')
+                self.output_segmentation_files.append(segmentation_file)
+                np.save(segmentation_file, pred_max)
                 break
             else:
                 logger.warning(f'File {f} is not a valid DICOM file')
+        return self.output_segmentation_files
 
 
 if __name__ == '__main__':
