@@ -22,6 +22,7 @@ class MuscleFatSegmentator:
         self.mode = MuscleFatSegmentator.ARGMAX
         self.output_segmentation_files = None
 
+    @staticmethod
     def load_model(file_path):
         import tensorflow as tf
         file_name = os.path.split(file_path)[1]
@@ -30,6 +31,7 @@ class MuscleFatSegmentator:
             zip_obj.extractall(path=model_directory)
         return tf.keras.models.load_model(model_directory, compile=False)
 
+    @staticmethod
     def load_params(file_path):
         with open(file_path, 'r') as f:
             return json.load(f)
@@ -48,6 +50,7 @@ class MuscleFatSegmentator:
                 logger.error(f'Unknown model file {file_name}')
         return model, contour_model, params
 
+    @staticmethod
     def normalize(img, min_bound, max_bound):
         img = (img - min_bound) / (max_bound - min_bound)
         img[img > 1] = 0
@@ -68,6 +71,7 @@ class MuscleFatSegmentator:
         mask = np.uint8(pred_max)
         return mask
 
+    @staticmethod
     def convert_labels_to_157(prediction):
         new_prediction = np.copy(prediction)
         new_prediction[new_prediction == 1] = 1
