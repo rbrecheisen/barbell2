@@ -124,12 +124,12 @@ class SliceSelector:
 if __name__ == '__main__':
     def main():
         selector = SliceSelector()
-        selector.input_roi = '/Users/ralph/SURF Drive/dropbox/segmentations/vertebrae_L3.nii.gz'
-        selector.input_volume = '/Users/ralph/SURF Drive/dropbox/nifti/al.nii.gz'
-        selector.input_dicom_directory = '/Users/ralph/SURF Drive/dropbox/dicom'
+        selector.input_roi = os.path.join(os.environ['HOME'], 'data/surfdrive/dropbox/segmentations/vertebrae_L3.nii.gz')
+        selector.input_volume = os.path.join(os.environ['HOME'], 'data/surfdrive/dropbox/nifti/al.nii.gz')
+        selector.input_dicom_directory = os.path.join(os.environ['HOME'], 'data/surfdrive/dropbox/dicom')
         # selector.mode = SliceSelector.ALL
         selector.mode = 0.68
         file_paths = selector.execute()
         import shutil
-        shutil.copyfile(file_paths[0], f'/Users/ralph/Desktop/SliceSelector/L3.dcm')
+        shutil.copyfile(file_paths[0], os.path.join(os.environ['HOME'], 'data/surfdrive/dropbox/L3.dcm'))
     main()
