@@ -48,7 +48,7 @@ class BodyCompositionCalculator:
             for input_segmentation_file in self.input_segmentation_files:
                 input_segmentation_file_name = os.path.split(input_segmentation_file)[1]
                 if input_file_name + '.seg.npy' == input_segmentation_file_name:
-                    file_pairs.append(input_file, input_segmentation_file)
+                    file_pairs.append((input_file, input_segmentation_file))
                     found = True
                     break
             if not found:
