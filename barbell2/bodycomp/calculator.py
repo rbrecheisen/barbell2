@@ -20,12 +20,14 @@ class BodyCompositionCalculator:
         self.heights = None                     # (Optional) dictionary containing heights for each L3 image
         self.output_metrics = None              # Dictionary containing output metrics for each L3 image
 
+    @staticmethod
     def load_dicom(f_path):
         p = pydicom.dcmread(f_path)
         pixel_spacing = p.PixelSpacing
         pixels = p.pixel_array.reshape(p.Rows, p.Columns)
         return pixels, pixel_spacing
 
+    @staticmethod
     def load_segmentation(f_path):
         return np.load(f_path)
 
