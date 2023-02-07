@@ -3,7 +3,7 @@ import logging
 import pydicom
 import numpy as np
 
-from barbell2.utils import calculate_area, calculate_mean_radiation_attenuation
+from barbell2.utils import calculate_area, calculate_mean_radiation_attenuation, get_pixels
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ class BodyCompositionCalculator:
     def load_dicom(f_path):
         p = pydicom.dcmread(f_path)
         pixel_spacing = p.PixelSpacing
-        pixels = p.pixel_array.reshape(p.Rows, p.Columns)
+        pixels = get_pixels(p, normalize=True)
         return pixels, pixel_spacing
 
     @staticmethod
