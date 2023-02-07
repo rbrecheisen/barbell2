@@ -80,7 +80,7 @@ if __name__ == '__main__':
     def main():
         calculator = BodyCompositionCalculator()
         calculator.input_files = ['/mnt/localscratch/cds/rbrecheisen/raw/pancreas-demo-1/1.dcm']
-        calculator.input_segmentation_files = ['/tmp/barbell2/bodycomp/seg.py/1.dcm.seg.py']
+        calculator.input_segmentation_files = ['/tmp/barbell2/bodycomp/seg.py/1.dcm.seg.npy']
         output_metrics = calculator.execute()
         for k in output_metrics.keys():
             print(f'{k}: {output_metrics[k]}')
