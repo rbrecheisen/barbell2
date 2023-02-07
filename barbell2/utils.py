@@ -194,3 +194,25 @@ def create_fake_dicom(pixels, dcm_obj):
     dcm_obj.PixelData = pixels_new.tobytes()
     dcm_obj.SOPInstanceUID = '{}.9999'.format(dcm_obj.SOPInstanceUID)
     return dcm_obj
+
+
+def calculate_area(labels, label, pixel_spacing):
+    mask = np.copy(labels)
+    mask[mask != label] = 0
+    mask[mask == label] = 1
+    area = np.sum(mask) * (pixel_spacing[0] * pixel_spacing[1]) / 100.0
+    return area
+
+
+def calculate_mean_radiation_attenuation(image, labels, label):
+    mask = np.copy(labels)
+    mask[mask != label] = 0
+    mask[mask == label] = 1
+    subtracted = image * mask
+    mask_sum = np.sum(mask)
+    if mask_sum > 0.0:
+        mean_ra = np.sum(subtracted) / np.sum(mask)
+    else:
+        print('Sum of mask pixels is zero, return zero radiation attenuation')
+        mean_ra = 0.0
+    return mean_ra
