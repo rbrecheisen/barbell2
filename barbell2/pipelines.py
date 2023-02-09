@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 d2n = DicomToNifti()
-d2n.input_directory = '/Users/ralph/SURF Drive/projects/hpb/bodycomposition/data/ct_noise_recon/AL_100%/101816478/2-Abdomen'
+d2n.input_directory = '/mnt/localscratch/cds/rbrecheisen/raw/'
 d2n.output_file = '/Users/ralph/Desktop/output/output_file.nii.gz'
 d2n.execute()
 
