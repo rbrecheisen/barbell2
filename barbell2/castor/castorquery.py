@@ -11,9 +11,13 @@ logger = logging.getLogger(__name__)
 
 class CastorQuery:
 
-    def __init__(self, db_file):
+    def __init__(self, db_file, cache=True):
         self.db = self.load_db(db_file)
-        self.queries = self.read_queries_from_cache()
+        if self.cache:
+            self.queries = self.read_queries_from_cache()
+        else:
+            self.queries = []
+        self.cache = cache
         self.current_query = None
         self.output = None
 
@@ -21,7 +25,8 @@ class CastorQuery:
         if self.db:
             self.db.close()
             self.db = None
-        self.write_queries_to_cache(self.queries)
+        if self.cache:
+            self.write_queries_to_cache(self.queries)
 
     def load_db(self, db_file):
         try:
@@ -59,7 +64,8 @@ class CastorQuery:
 
     def remove_all_queries(self):
         self.queries = []
-        self.write_queries_to_cache(self.queries)
+        if self.cache:
+            self.write_queries_to_cache(self.queries)
 
     def set_current_query(self, idx):
         self.current_query = self.queries[idx]
