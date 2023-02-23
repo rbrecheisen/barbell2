@@ -13,11 +13,11 @@ class CastorQuery:
 
     def __init__(self, db_file, cache=True):
         self.db = self.load_db(db_file)
+        self.cache = cache
         if self.cache:
             self.queries = self.read_queries_from_cache()
         else:
             self.queries = []
-        self.cache = cache
         self.current_query = None
         self.output = None
 
