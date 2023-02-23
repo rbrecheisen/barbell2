@@ -40,12 +40,11 @@ class CastorToSqlite:
         self.castor_to_sql_types = castor_to_sql_types
 
     def get_records_data_from_cache(self):
-        records_data = None
         if os.path.isfile('records_data.json'):
             logger.info('loading records data from cache...')
             with open('records_data.json', 'r') as f:
-                records_data = json.load(f)
-        return records_data
+                return json.load(f)
+        return None
 
     def write_records_data_to_cache(self, records_data):
         logger.info('writing records data to cache...')
