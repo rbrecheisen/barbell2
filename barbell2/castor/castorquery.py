@@ -80,15 +80,21 @@ class CastorQuery:
             for result in data:
                 df_data.append(result)
             self.output = pd.DataFrame(df_data, columns=self.get_column_names(data))
-            self.output.to_csv('query_results.csv', index=False, sep=';')
         return self.output
+
+    def to_csv(self, df):
+        self.output.to_csv(df, index=False, sep=';')
+
+    def to_excel(self, df):
+        self.output.to_excel(df, index=False)
                     
 
 if __name__ == '__main__':
     def main():
         selector = CastorQuery('/Users/Ralph/Desktop/castor.db')
         # selector.set_current_query(0)
-        # selector.add_query('SELECT * FROM data WHERE dpca_datok BETWEEN "2018-05-01" AND "2018-07-01";')
-        # selector.add_query('SELECT COUNT(*) FROM data WHERE dpca_datok BETWEEN "2018-05-01" AND "2018-07-01";')
+        selector.add_query('SELECT * FROM data WHERE dpca_datok BETWEEN "2018-05-01" AND "2018-07-01";')
         selector.execute()
+        # selector.to_csv('query_results.csv')
+        selector.to_excel('query_results.xlsx')
     main()
