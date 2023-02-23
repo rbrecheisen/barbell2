@@ -23,10 +23,11 @@ class CastorToSqlite:
         'year': 'TINYINT',
     }
 
-    def __init__(self, study_name, client_id, client_secret, cache=True, record_offset=0, max_nr_records=-1, log_level=logging.INFO):
+    def __init__(self, study_name, client_id, client_secret, output_db_file='castor.db', cache=True, record_offset=0, max_nr_records=-1, log_level=logging.INFO):
         self.study_name = study_name
         self.client_id = client_id
         self.client_secret = client_secret
+        self.output_db_file = output_db_file
         self.cache = cache
         self.record_offset = record_offset
         self.max_nr_records = max_nr_records
@@ -161,7 +162,7 @@ class CastorToSqlite:
     def create_sql_database(self, records_data):
         conn = None
         try:
-            conn = sqlite3.connect('castor.db')
+            conn = sqlite3.connect(self.output_db_file)
             cursor = conn.cursor()
             cursor.execute(self.generate_sql_for_dropping_table())
             cursor.execute(self.generate_sql_for_creating_table(records_data))
@@ -187,6 +188,7 @@ if __name__ == '__main__':
             study_name='ESPRESSO_v2.0_DPCA',
             client_id=open(os.path.join(os.environ['HOME'], 'castorclientid.txt')).readline().strip(),
             client_secret=open(os.path.join(os.environ['HOME'], 'castorclientsecret.txt')).readline().strip(),
+            output_db_file='castor.db',
             cache=True,
             record_offset=0,
             max_nr_records=1,
