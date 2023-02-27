@@ -37,6 +37,16 @@ class CastorToSqlite:
         self.time_elapsed = 0
         logging.root.setLevel(self.log_level)
 
+    def check_output_db_file(output_db_file):
+        if os.path.isfile(output_db_file):
+            file_base = os.path.splitext(output_db_file)[0]
+            for i in range(100):
+                file_path = file_base + '-{}.db'.format(i)
+                if not os.path.isfile(file_path):
+                    return file_path
+            raise RuntimeError('Output file {} already exists'.format(file_path))
+        return output_db_file
+
     def set_castor_to_sql_types(self, castor_to_sql_types):
         self.castor_to_sql_types = castor_to_sql_types
 
