@@ -42,8 +42,8 @@ class TotalSegmentator:
             statistics, 
             radiomics,
             fast,
-            self.nifti_path,
-            self.output_dir,
+            self.input_file,
+            self.output_directory,
         )
         logger.info(f'Running command: {self.cmd}')
         os.system(self.cmd)
