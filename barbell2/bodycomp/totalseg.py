@@ -21,6 +21,7 @@ class TotalSegmentator:
         return len(os.listdir(directory)) == 0
 
     def execute(self):
+        logger.info('Running TotalSegmentator...')
         if self.input_file is None:
             logger.error('Input NIFTI file not specified')
             return None

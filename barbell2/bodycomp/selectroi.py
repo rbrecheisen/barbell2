@@ -24,6 +24,7 @@ class RoiSelector:
         return os.path.isfile(f)
 
     def execute(self):
+        logger.info('Running RoiSelector...')
         if self.input_directory is None:
             logger.error('Input directory not specified')
             return None

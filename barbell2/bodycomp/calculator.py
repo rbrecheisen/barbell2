@@ -32,6 +32,8 @@ class BodyCompositionCalculator:
         return np.load(f_path)
 
     def execute(self):
+        # TODO: If heights are provided, output index values!!!
+        logger.info('Running BodyCompositionCalculator...')
         if self.input_files is None:
             logger.error('Input files not specified')
             return None
@@ -60,6 +62,7 @@ class BodyCompositionCalculator:
         for file_pair in file_pairs:
             image, pixel_spacing = self.load_dicom(file_pair[0])
             segmentations = self.load_segmentation(file_pair[1])
+            self.output_metrics[file_pair[0]] = {}
             self.output_metrics[file_pair[0]] = {
                 'muscle_area': calculate_area(segmentations, BodyCompositionCalculator.MUSCLE, pixel_spacing),
                 'vat_area': calculate_area(segmentations, BodyCompositionCalculator.VAT, pixel_spacing),

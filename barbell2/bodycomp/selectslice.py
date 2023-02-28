@@ -74,6 +74,7 @@ class SliceSelector:
         return file_paths
 
     def execute(self):
+        logger.info('Running SliceSelector...')
         if self.input_roi is None:
             logger.error('Input ROI not specified')
             return None

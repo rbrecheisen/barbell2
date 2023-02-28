@@ -28,6 +28,7 @@ class DicomToNifti:
         return os.path.isfile(f)
 
     def execute(self, verbose=False):
+        logger.info('Running DicomToNifti...')
         if self.input_directory is None:
             logger.error('Input directory not specified')
             return None

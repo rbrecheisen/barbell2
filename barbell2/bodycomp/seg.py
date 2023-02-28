@@ -81,6 +81,7 @@ class MuscleFatSegmentator:
         return new_prediction
 
     def execute(self):
+        logger.info('Running MuscleFatSegmentator...')
         if self.input_files is None:
             logger.error('Input files not specified')
             return None
