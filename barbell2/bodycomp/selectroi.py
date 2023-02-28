@@ -38,5 +38,5 @@ class RoiSelector:
             logger.info('Overwrite = False and output file already exists, skipping')
             return self.output_file
         os.makedirs(self.output_directory, exist_ok=True)
-        shutil.copy(os.path.join(self.input_directory, self.roi, self.output_directory))
+        shutil.copy(os.path.join(self.input_directory, self.roi), self.output_directory)
         return self.output_file
