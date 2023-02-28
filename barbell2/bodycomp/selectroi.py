@@ -16,7 +16,12 @@ class RoiSelector:
         self.input_directory = None
         self.roi = None
         self.output_directory = None
+        self.overwrite = True
         self.output_file = None
+
+    @staticmethod
+    def exists(f):
+        return os.path.isfile(f)
 
     def execute(self):
         if self.input_directory is None:
@@ -28,7 +33,10 @@ class RoiSelector:
         if self.output_directory is None:
             logger.error('Output directory not specified')
             return None
+        self.output_file = os.path.join(self.output_directory, self.roi)
+        if not self.overwrite and self.exists(self.output_file):
+            logger.info('Overwrite = False and output file already exists, skipping')
+            return self.output_file
         os.makedirs(self.output_directory, exist_ok=True)
-        shutil.copy(os.path.join(self.input_directory, RoiSelector.VERTEBRAE_L3, self.output_directory))
-        self.output_file = os.path.join(self.output_directory, RoiSelector.VERTEBRAE_L3)
+        shutil.copy(os.path.join(self.input_directory, self.roi, self.output_directory))
         return self.output_file

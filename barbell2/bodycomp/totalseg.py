@@ -13,7 +13,7 @@ class TotalSegmentator:
         self.fast = False
         self.statistics = False
         self.radiomics = False
-        self.overwrite = False
+        self.overwrite = True
         self.cmd = None
 
     @staticmethod

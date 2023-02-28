@@ -26,7 +26,6 @@ class MuscleFatSegmentator:
     @staticmethod
     def load_model(file_path):
         import tensorflow as tf
-        file_name = os.path.split(file_path)[1]
         model_directory = '/tmp/barbell2/bodycomp/seg.py'
         os.makedirs(model_directory, exist_ok=True)
         with zipfile.ZipFile(file_path) as zip_obj:

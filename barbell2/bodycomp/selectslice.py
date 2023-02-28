@@ -22,6 +22,7 @@ class SliceSelector:
 
     @staticmethod
     def has_duplicate_objects(roi):
+        # TODO: Implement this!
         return False
 
     @staticmethod
