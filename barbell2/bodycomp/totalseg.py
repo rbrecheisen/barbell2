@@ -8,13 +8,6 @@ logger = logging.getLogger(__name__)
 class TotalSegmentator:
 
     def __init__(self):
-        try:
-            subprocess.call(['TotalSegmentator'])
-        except FileNotFoundError:
-            logger.error(
-                'TotalSegmentator is not installed!\n'
-                'Please install it using pip install pytorch totalsegmentator'
-            )
         self.input_file = None
         self.output_directory = None
         self.fast = False
