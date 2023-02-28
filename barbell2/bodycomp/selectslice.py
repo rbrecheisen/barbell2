@@ -95,8 +95,15 @@ class SliceSelector:
         volume = nibabel.load(self.input_volume)
         z_min, z_max = self.get_min_max_z_coord_patient_position(i_min, i_max, volume)
         self.output_files = []
-        if self.mode == SliceSelector.ALL:
+        if self.mode == SliceSelector.ALL or self.mode == SliceSelector.TOP or self.mode == SliceSelector.BOTTOM:
             self.output_files = self.get_dicom_images_between(z_min, z_max, self.input_dicom_directory)
+            if self.mode == SliceSelector.TOP:
+                self.output_files = [self.output_files[0]]
+            elif self.mode == SliceSelector.BOTTOM:
+                self.output_files = [self.output_files[-1]]
+            else:
+                logger.error('Unknown mode {}'.format(self.mode))
+                self.output_files = []
         elif self.mode == SliceSelector.MEDIAN:
             z_median = z_min + np.abs(z_max - z_min) * 0.50
             self.output_files = self.get_dicom_images_between(z_median, z_median, self.input_dicom_directory)
