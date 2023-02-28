@@ -13,7 +13,12 @@ class TotalSegmentator:
         self.fast = False
         self.statistics = False
         self.radiomics = False
+        self.overwrite = False
         self.cmd = None
+
+    @staticmethod
+    def is_empty(directory):
+        return len(os.listdir(directory)) == 0
 
     def execute(self):
         if self.input_file is None:
@@ -22,6 +27,9 @@ class TotalSegmentator:
         if self.output_directory is None:
             logger.error('Output directory not specified')
             return None
+        if not self.overwrite and not self.is_empty(self.output_directory):
+            logger.info('Overwrite = False and output directory not empty, so skipping')
+            return self.output_directory
         fast = ''
         if self.fast:
             fast = '--fast'
