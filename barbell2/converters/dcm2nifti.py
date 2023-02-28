@@ -34,9 +34,13 @@ class DicomToNifti:
         if self.output_file is None:
             logger.error('Output file not specified')
             return None
-        if not self.overwrite and not self.exists(self.output_file):
+        if not self.overwrite and self.exists(self.output_file):
             logger.info('Overwrite = False and output file already exists')
             return self.output_file
+        if self.exists(self.output_file):
+            logger.warn('Output file already exists, deleting it')
+            file_base = os.path.splitext(self.output_file)[0]
+            os.system('rm {}*'.format(file_base))
         items = os.path.split(self.output_file)
         output_file_name = items[1]
         if output_file_name.endswith('.nii.gz'):
