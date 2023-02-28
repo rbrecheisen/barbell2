@@ -12,6 +12,8 @@ class SliceSelector:
     ALL = 0
     MEDIAN = 1
     IQR_25_50_75 = 2
+    TOP = 3
+    BOTTOM = 4
 
     def __init__(self):
         self.input_roi = None
