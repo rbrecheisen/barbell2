@@ -2,6 +2,7 @@ import os
 import json
 import sqlite3
 import logging
+import pandas as pd
 
 from datetime import datetime
 from barbell2.castor.api import CastorApiClient
@@ -11,6 +12,7 @@ logging.basicConfig()
 logger = logging.getLogger(__name__)
 
 
+#####################################################################################################################################
 class CastorToSqlite:
 
     CASTOR_TO_SQL_TYPES = {
@@ -158,16 +160,142 @@ class CastorToSqlite:
             values.append(value)
         return placeholders, values
 
+    def create_sql_database(self, records_data):
+        conn = None
+        try:
+            conn = sqlite3.connect(self.output_db_file)
+            cursor = conn.cursor()
+            cursor.execute(self.generate_sql_for_dropping_table())
+            cursor.execute(self.generate_sql_for_creating_table(records_data))
+            placeholders, values = self.generate_list_of_sql_statements_for_inserting_records(records_data)
+            for i in range(len(placeholders)):
+                cursor.execute(placeholders[i], values[i])
+            conn.commit()
+        except sqlite3.Error as e:
+            logger.error(e)
+        finally:
+            if conn:
+                conn.close()
+
+    def execute(self):
+        records_data = self.get_records_data()
+        self.create_sql_database(records_data)
+        return self.output_db_file
+    
+
+#####################################################################################################################################
+class CastorExcelToSqlite:
+
+    CASTOR_TO_SQL_TYPES = {
+        'string': 'TEXT',
+        'textarea': 'TEXT',
+        'radio': 'TINYINT',
+        'dropdown': 'TINYINT',
+        'numeric': 'FLOAT',
+        'date': 'DATE',
+        'year': 'TINYINT',
+    }
+
+    FIELDS_TO_SKIP = [
+        'Participant Id',
+        'Participant Status',
+        'Site Abbreviation',
+        'Participant Creation Date',
+    ]
+
+    def __init__(self, export_excel_file, db_prefix, output_db_file='castor.db', record_offset=0, max_nr_records=-1, log_level=logging.INFO):
+        self.export_excel_file = export_excel_file
+        self.db_prefix = db_prefix
+        if not self.db_prefix.endswith('_'):
+            self.db_prefix += '_'
+        self.output_db_file = output_db_file
+        self.record_offset = record_offset
+        self.max_nr_records = max_nr_records
+        self.log_level = log_level
+        self.castor_to_sql_types = CastorExcelToSqlite.CASTOR_TO_SQL_TYPES
+
+    def set_castor_to_sql_types(self, castor_to_sql_types):
+        self.castor_to_sql_types = castor_to_sql_types
+
     @staticmethod
-    def test_search_queries(cursor):
-            cursor.execute('SELECT * FROM data WHERE dpca_gebjaar > 1965;')
-            assert len(cursor.fetchall()) == 0
-            cursor.execute('SELECT * FROM data WHERE dpca_gebjaar < 1965;')
-            assert len(cursor.fetchall()) == 1
-            cursor.execute('SELECT * FROM data WHERE dpca_gebjaar = 1963;')
-            assert len(cursor.fetchall()) == 1
-            cursor.execute('SELECT * FROM data WHERE dpca_datok BETWEEN "2018-05-01" AND "2018-07-01";')  # Note the yyyy-mm-dd format!
-            assert len(cursor.fetchall()) == 1
+    def get_field_types(field_definitions):
+        field_types = {}
+        for _, row in field_definitions.iterrows():
+            variable_name = row['Variable name']
+            field_type = row['Original field type']
+            if pd.isna(field_type) or field_type == 'calculation' or field_type == 'remark' or pd.isna(variable_name):
+                continue
+            field_types[variable_name] = field_type
+        return field_types
+    
+    def get_records_data(self, field_data, field_types):
+        records_data = {}
+        count = 0
+        for _, row in field_data.iterrows():
+            if count < self.record_offset:
+                continue
+            if count == self.max_nr_records:
+                break
+            for field_variable_name in field_types.keys():
+                if field_variable_name in CastorExcelToSqlite.FIELDS_TO_SKIP:
+                    continue
+                field_value = row[field_variable_name]
+                if pd.isna(field_value):
+                    field_value = ''
+                if field_variable_name not in records_data.keys():
+                    field_type = field_types[field_variable_name]
+                    records_data[field_variable_name] = {'field_type': field_type, 'field_values': []}
+                records_data[field_variable_name]['field_values'].append(field_value)
+            count += 1
+        return records_data
+
+    def generate_sql_field_from_field_type_and_field_variable_name(self, field_type, field_variable_name):
+        return '{} {}'.format(field_variable_name, self.castor_to_sql_types[field_type])
+
+    def generate_sql_for_creating_table(self, records_data):
+        sql = 'CREATE TABLE data (id INTEGER PRIMARY KEY, '
+        for field_variable_name in records_data.keys():
+            field_type = records_data[field_variable_name]['field_type']
+            field_type_sql = self.generate_sql_field_from_field_type_and_field_variable_name(field_type, field_variable_name)
+            if field_type_sql is not None:
+                sql += field_type_sql + ', '
+        sql = sql[:-2] + ');'
+        return sql
+
+    @staticmethod
+    def generate_sql_for_dropping_table():
+        return 'DROP TABLE IF EXISTS data;'
+
+    def get_sql_object_for_field_data(self, field_data, i):
+        value = field_data['field_values'][i]
+        try:            
+            if (field_data['field_type'] == 'radio' or field_data['field_type'] == 'dropdown' or field_data['field_type'] == 'year') and value != '':
+                return int(value)
+            if field_data['field_type'] == 'numeric' and value != '':
+                return float(value)
+            if field_data['field_type'] == 'date' and value != '':
+                return datetime.strptime(value, '%d-%m-%Y').date()
+        except ValueError:
+            logger.info('[ERROR] could not parse value "{}" for field type "{}". Forcing string format...'.format(value, field_data['field_type']))
+        return str(field_data['field_values'][i])
+
+    def generate_list_of_sql_statements_for_inserting_records(self, records_data):
+        nr_records = len(records_data[list(records_data.keys())[0]]['field_values'])
+        placeholders = []
+        values = []
+        for i in range(nr_records):
+            placeholder = 'INSERT INTO data ('
+            value = []
+            for field_variable_name in records_data.keys():
+                placeholder += field_variable_name + ', '
+            placeholder = placeholder[:-2] + ') VALUES ('
+            for field_variable_name in records_data.keys():
+                value.append(self.get_sql_object_for_field_data(records_data[field_variable_name], i))
+                placeholder += '?, '
+            placeholder = placeholder[:-2] + ');'
+            placeholders.append(placeholder)
+            values.append(value)
+        return placeholders, values
 
     def create_sql_database(self, records_data):
         conn = None
@@ -180,18 +308,26 @@ class CastorToSqlite:
             for i in range(len(placeholders)):
                 cursor.execute(placeholders[i], values[i])
             conn.commit()
-            self.test_search_queries(cursor)
         except sqlite3.Error as e:
-            print(e)
+            logger.error(e)
         finally:
             if conn:
                 conn.close()
 
     def execute(self):
-        records_data = self.get_records_data()
+        logger.info('Loading field definitions...')
+        field_definitions = pd.read_excel(self.export_excel_file, sheet_name='Study variable list', engine='openpyxl', dtype=str)
+        field_types = self.get_field_types(field_definitions)
+        logger.info('Loading field data...')
+        field_data = pd.read_excel(self.export_excel_file, sheet_name='Study results', engine='openpyxl', dtype=str)
+        logger.info('Building records data...')
+        records_data = self.get_records_data(field_data, field_types)
+        logger.info('Creating SQL database...')
         self.create_sql_database(records_data)
+        return self.output_db_file
 
 
+#####################################################################################################################################
 class CastorQuery:
 
     def __init__(self, db_file, cache=True):
@@ -278,18 +414,7 @@ class CastorQuery:
         self.output.to_excel(df, index=False)
 
 
-class CastorReportBuilder:
-
-    HTML = 0
-
-    def __init__(self, df, output_format=HTML):
-        self.df = df
-        self.output_format = output_format
-
-    def execute(self):
-        pass
-
-
+#####################################################################################################################################
 if __name__ == '__main__':
     def main():
         converter = CastorToSqlite(
