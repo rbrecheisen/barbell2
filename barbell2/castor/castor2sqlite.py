@@ -330,22 +330,14 @@ class CastorExcelToSqlite:
 #####################################################################################################################################
 class CastorQuery:
 
-    def __init__(self, db_file, cache=True):
+    def __init__(self, db_file):
         self.db = self.load_db(db_file)
-        self.cache = cache
-        if self.cache:
-            self.queries = self.read_queries_from_cache()
-        else:
-            self.queries = []
-        self.current_query = None
         self.output = None
 
     def __del__(self):
         if self.db:
             self.db.close()
             self.db = None
-        if self.cache:
-            self.write_queries_to_cache(self.queries)
 
     def load_db(self, db_file):
         try:
@@ -355,40 +347,6 @@ class CastorQuery:
             logger.error(e)
         return None
 
-    def read_queries_from_cache(self):
-        if os.path.isfile('queries.json'):
-            logger.info('Reading queries from cache...')
-            with open('queries.json', 'r') as f:
-                return json.load(f)
-        return []
-
-    def write_queries_to_cache(self, queries):
-        logger.info('Writing queries to cache...')
-        with open('queries.json', 'w') as f:
-            json.dump(queries, f)
-
-    def add_query(self, query):
-        if query not in self.queries:
-            self.queries.append(query)
-            self.set_current_query(len(self.queries)-1)
-        else:
-            self.set_current_query(self.queries.index(query))
-
-    def remove_query(self, idx):        
-        self.queries.remove(self.queries[idx])
-        if len(self.queries) == 0:
-            self.set_current_query(None)
-        else:
-            self.set_current_query(0)
-
-    def remove_all_queries(self):
-        self.queries = []
-        if self.cache:
-            self.write_queries_to_cache(self.queries)
-
-    def set_current_query(self, idx):
-        self.current_query = self.queries[idx]
-
     @staticmethod
     def get_column_names(data):
         column_names = []
@@ -396,22 +354,35 @@ class CastorQuery:
             column_names.append(column[0])
         return column_names
 
-    def execute(self):
-        if self.current_query is not None and self.db is not None:
-            self.output = None
-            cursor = self.db.cursor()
-            data = cursor.execute(self.current_query)
-            df_data = []
-            for result in data:
-                df_data.append(result)
-            self.output = pd.DataFrame(df_data, columns=self.get_column_names(data))
+    def execute(self, query):
+        self.output = None
+        cursor = self.db.cursor()
+        data = cursor.execute(query)
+        df_data = []
+        for result in data:
+            df_data.append(result)
+        self.output = pd.DataFrame(df_data, columns=self.get_column_names(data))
         return self.output
 
-    def to_csv(self, df):
-        self.output.to_csv(df, index=False, sep=';')
+    def usage():
+        text = """
+        Usage:
+        ======
+        search_engine = CastorQuery(db_file)
+        result = search_engine.execute('SELECT * FROM data WHERE my_date BETWEEN "2020-01-01" AND "2021-01-01"')
+        result.to_csv('result.csv')
 
-    def to_excel(self, df):
-        self.output.to_excel(df, index=False)
+        SQL hints:
+        ==========
+        - All data is stored in a table called "data" so your FROM clause should always be "FROM data"
+        - Dates are always written between double-quotes, in the format "yyyy-mm-dd"
+        - You can retrieve records between two dates using BETWEEN "date1" AND "date2"
+        - Numerical values can be written without quotes
+        - Equals is written as "="
+        - Not equals is written as "!=" or "<>"
+        - Getting maximum value (or date) from column: SELECT MAX(<column>) FROM data
+        """
+        logger.info(text)
 
 
 #####################################################################################################################################
@@ -429,9 +400,7 @@ if __name__ == '__main__':
         )
         converter.execute()
         # selector = CastorQuery('/Users/Ralph/Desktop/castor.db')
-        # selector.set_current_query(0)
-        # selector.add_query('SELECT * FROM data WHERE dpca_datok BETWEEN "2018-05-01" AND "2018-07-01";')
-        # selector.execute()
+        # selector.execute('SELECT * FROM data WHERE dpca_datok BETWEEN "2018-05-01" AND "2018-07-01";')
         # selector.to_csv('query_results.csv')
         # selector.to_excel('query_results.xlsx')
     main()
