@@ -376,7 +376,7 @@ class CastorQuery:
         ==========
         - All data is stored in a table called "data" so your FROM clause should always be "FROM data"
         - Dates are always written between double-quotes, in the format "yyyy-mm-dd"
-        - You can retrieve records between two dates using BETWEEN "date1" AND "date2"
+        - You can retrieve records between two dates using BETWEEN "date1" AND "date2" (where date2 is included)
         - Numerical values can be written without quotes
         - Equals is written as "="
         - Not equals is written as "!=" or "<>"
