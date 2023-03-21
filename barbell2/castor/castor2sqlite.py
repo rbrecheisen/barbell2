@@ -52,19 +52,9 @@ class CastorToSqlite:
     def set_castor_to_sql_types(self, castor_to_sql_types):
         self.castor_to_sql_types = castor_to_sql_types
 
-    @staticmethod
-    def init_records_data(fields):
-        records_data = {}
-        for field in fields:
-            records_data[field['field_id']] = {
-                'field_variable_name': field['field_variable_name'],
-                'field_type': field['field_type'],
-                'field_values': [],
-            }
-        return records_data
-
-    def get_records_data_fast(self):
+    def get_records_data(self):
         start_secs_total = current_time_secs()
+        fields = None
         records_data = None
         client = CastorApiClient(self.client_id, self.client_secret)
         study = client.get_study(self.study_name)
@@ -80,32 +70,88 @@ class CastorToSqlite:
                 continue
             fields_ok.append(field)
         fields = fields_ok
-        print('Nr. fields: {}'.format(len(fields)))
-        if records_data is None:
-            logger.info('getting records...')
-            records = client.get_records(study_id)
-            logger.info('Found {} records to process'.format(len(records)))
-            records_data = self.init_records_data(fields)
-            count = 0
-            for record in records:
-                if count < self.record_offset:
-                    continue
-                if count == self.max_nr_records:
-                    break
-                start_secs = current_time_secs()
-                record_id = client.get_record_id(record)
-                record_field_data = client.get_record_field_data(study_id, record_id)
-
-                print('Nr. fields in record field data: {}'.format(len(record_field_data)))
-
-                # for field_item in record_field_data:
-                #     records_data[field_item['field_id']]['field_values'].append(field_item['field_value'])
-                elapsed_time = duration(elapsed_secs(start_secs))                
-                logger.info('processed record {} in {}'.format(record_id, elapsed_time))
-                count += 1
+        logger.info('getting records data...')
+        records_data = {}
+        count = 0
+        records = client.get_records(study_id)
+        logger.info('Found {} records to process'.format(len(records)))
+        for record in records:
+            if count < self.record_offset:
+                continue
+            if count == self.max_nr_records:
+                break
+            start_secs = current_time_secs()
+            record_id = client.get_record_id(record)
+            for field in fields:
+                field_id = field['field_id']
+                field_type = field['field_type']
+                field_variable_name = field['field_variable_name']
+                field_value = client.get_field_value(study_id, record_id, field['id'])
+                if field_value is None:
+                    field_value = ''
+                if field_id not in records_data.keys():
+                    records_data[field_id] = {'field_variable_name': field_variable_name, 'field_type': field_type, 'field_values': []}
+                records_data[field_id]['field_values'].append(field_value)
+                # if field_variable_name not in records_data.keys():
+                #     records_data[field_variable_name] = {'field_type': field['field_type'], 'field_values': []}
+                # records_data[field_variable_name]['field_values'].append(field_value)
+            elapsed_time = duration(elapsed_secs(start_secs))                
+            logger.info('processed record {} in {}'.format(record_id, elapsed_time))
+            count += 1
         elapsed_time_total = duration(elapsed_secs(start_secs_total))
         logger.info('total time elapsed: {}'.format(elapsed_time_total))
         return records_data
+        
+    # @staticmethod
+    # def init_records_data_fast(fields):
+    #     records_data = {}
+    #     for field in fields:
+    #         records_data[field['field_id']] = {
+    #             'field_variable_name': field['field_variable_name'],
+    #             'field_type': field['field_type'],
+    #             'field_values': [],
+    #         }
+    #     return records_data
+
+    # def get_records_data_fast(self):
+    #     start_secs_total = current_time_secs()
+    #     records_data = None
+    #     client = CastorApiClient(self.client_id, self.client_secret)
+    #     study = client.get_study(self.study_name)
+    #     assert study is not None, 'Castor API client could not find study {}'.format(self.study_name)
+    #     study_id = client.get_study_id(study)
+    #     logger.info('getting field definitions...')
+    #     fields = client.get_fields(study_id)
+    #     fields_ok = []
+    #     for field in fields:
+    #         if field['field_variable_name'] is None or field['field_type'] is None:
+    #             continue
+    #         if field['field_type'] == 'calculation' or field['field_type'] == 'remark':
+    #             continue
+    #         fields_ok.append(field)
+    #     fields = fields_ok
+    #     if records_data is None:
+    #         logger.info('getting records...')
+    #         records = client.get_records(study_id)
+    #         logger.info('Found {} records to process'.format(len(records)))
+    #         records_data = self.init_records_data_fast(fields)
+    #         count = 0
+    #         for record in records:
+    #             if count < self.record_offset:
+    #                 continue
+    #             if count == self.max_nr_records:
+    #                 break
+    #             start_secs = current_time_secs()
+    #             record_id = client.get_record_id(record)
+    #             record_field_data = client.get_record_field_data(study_id, record_id)
+    #             for field_item in record_field_data:
+    #                 records_data[field_item['field_id']]['field_values'].append(field_item['field_value'])
+    #             elapsed_time = duration(elapsed_secs(start_secs))                
+    #             logger.info('processed record {} in {}'.format(record_id, elapsed_time))
+    #             count += 1
+    #     elapsed_time_total = duration(elapsed_secs(start_secs_total))
+    #     logger.info('total time elapsed: {}'.format(elapsed_time_total))
+    #     return records_data
 
     def generate_sql_field_from_field_type_and_field_variable_name(self, field_type, field_variable_name):
         return '{} {}'.format(field_variable_name, self.castor_to_sql_types[field_type])
@@ -148,7 +194,6 @@ class CastorToSqlite:
             placeholder = placeholder[:-2] + ') VALUES ('
             for field_id in records_data.keys():
                 field_variable_name = records_data[field_id]['field_variable_name']
-                print(field_variable_name)
                 value.append(self.get_sql_object_for_field_data(records_data[field_id], i))
                 placeholder += '?, '
             placeholder = placeholder[:-2] + ');'
@@ -174,7 +219,7 @@ class CastorToSqlite:
                 conn.close()
 
     def execute(self):
-        records_data = self.get_records_data_fast()
+        records_data = self.get_records_data()
         self.create_sql_database(records_data)
         return self.output_db_file
     
@@ -391,7 +436,7 @@ if __name__ == '__main__':
             output_db_file='castor.db',
             cache=True,
             record_offset=0,
-            max_nr_records=10,
+            max_nr_records=2,
             log_level=logging.INFO,
         )
         converter.execute()
