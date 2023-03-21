@@ -44,7 +44,7 @@ class CastorApiClient:
         response = self.session.get(uri)
         response_data = response.json()
         if self.verbose:
-            logger.info(f'get_studies() response_data={json.dumps(response_data, index=4)}')
+            logger.info(f'get_studies() response_data={json.dumps(response_data, indent=4)}')
         studies = []
         for study in response_data['_embedded']['study']:
             studies.append(study)
@@ -93,14 +93,14 @@ class CastorApiClient:
         return records
     
     def get_record_field_data(self, study_id, record_id):
-        """ Returns dictionary of all data points for this record 
+        """ Returns list of all field values for this record 
         :param study_id: Study ID
         :param record_id: Record (or participant) ID
         """
         record_url = self.api_url + '/study/{}/participant/{}/data-points/study'.format(study_id, record_id)
         response = self.session.get(record_url)
         record_field_data = response.json()
-        return record_field_data
+        return record_field_data['_embedded']['items']
 
     @staticmethod
     def get_record_id(record):
