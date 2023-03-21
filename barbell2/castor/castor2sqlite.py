@@ -25,12 +25,11 @@ class CastorToSqlite:
         'year': 'TINYINT',
     }
 
-    def __init__(self, study_name, client_id, client_secret, output_db_file='castor.db', cache=True, record_offset=0, max_nr_records=-1, log_level=logging.INFO):
+    def __init__(self, study_name, client_id, client_secret, output_db_file='castor.db', record_offset=0, max_nr_records=-1, log_level=logging.INFO):
         self.study_name = study_name
         self.client_id = client_id
         self.client_secret = client_secret
         self.output_db_file = output_db_file
-        self.cache = cache
         self.record_offset = record_offset
         self.max_nr_records = max_nr_records
         self.log_level = log_level
