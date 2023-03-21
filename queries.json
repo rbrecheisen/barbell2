@@ -1,1 +1,0 @@
-["SELECT * FROM data WHERE dpca_datok BETWEEN \"2018-05-01\" AND \"2018-07-01\";"]
