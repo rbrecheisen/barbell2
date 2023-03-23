@@ -14,3 +14,4 @@ requests-oauthlib
 pynrrd
 h5py
 tensorflow
+seaborn

@@ -3,6 +3,8 @@ import json
 import sqlite3
 import logging
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 from datetime import datetime
 from barbell2.castor.api import CastorApiClient
@@ -423,6 +425,36 @@ class CastorQuery:
         - Getting maximum value (or date) from column: SELECT MAX(<column>) FROM data
         """
         logger.info(text)
+
+
+#####################################################################################################################################
+class CastorGraphGenerator:
+
+    def __init__(self, df):
+        self.df = df
+        self.plt = plt
+        self.output_dir = ''
+
+    def execute(self):
+        raise NotImplementedError()
+    
+
+#####################################################################################################################################
+class BarchartGenerator(CastorGraphGenerator):
+
+    def __init__(self, df, x, y, title):
+        super().__init__(df)
+        self.x = x
+        self.y = y
+        self.title = title
+
+    def execute(self):
+        sns.barplot(data=self.df, x=self.x, y=self.y).set(title=self.title)
+        self.plt.xticks(rotation=90)
+        output_file = os.path.join(self.output_dir, f'{self.title}.png')
+        self.plt.savefig(output_file)
+        self.plt.close()
+        return output_file
 
 
 #####################################################################################################################################
