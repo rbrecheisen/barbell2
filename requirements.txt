@@ -15,3 +15,4 @@ pynrrd
 h5py
 tensorflow
 seaborn
+wheel>=0.38.1
