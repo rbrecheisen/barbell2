@@ -20,10 +20,6 @@ class CastorApiClient:
         self.studies = self.get_studies()
 
     def create_session(self, client_id, client_secret):
-        """ Creates new session to communicate with Castor database REST API
-        :param client_id
-        :param client_secret
-        """
         if self.verbose:
             logger.info(f'create_session('
                 'client_id={client_id}, '
@@ -44,11 +40,11 @@ class CastorApiClient:
         """
         uri = self.api_url + '/study'
         if self.verbose:
-            print(f'get_studies() uri={uri}')
+            logger.info(f'get_studies() uri={uri}')
         response = self.session.get(uri)
         response_data = response.json()
         if self.verbose:
-            print(f'get_studies() response_data={json.dumps(response_data, index=4)}')
+            logger.info(f'get_studies() response_data={json.dumps(response_data, indent=4)}')
         studies = []
         for study in response_data['_embedded']['study']:
             studies.append(study)
@@ -59,7 +55,7 @@ class CastorApiClient:
         :param name Study name
         """
         if self.verbose:
-            print(f'get_study(name={name}')
+            logger.info(f'get_study(name={name}')
         for study in self.studies:
             if study['name'] == name:
                 return study
@@ -71,7 +67,7 @@ class CastorApiClient:
         """
         if self.verbose:
             if 'study_id' not in study.keys():
-                print(f'get_study_id(study={study}) missing key study_id')
+                logger.info(f'get_study_id(study={study}) missing key study_id')
         study_id = study['study_id']
         return study_id
 
@@ -95,6 +91,16 @@ class CastorApiClient:
                     if self.verbose:
                         print(record)
         return records
+    
+    def get_record_field_data(self, study_id, record_id):
+        """ Returns list of all field values for this record 
+        :param study_id: Study ID
+        :param record_id: Record (or participant) ID
+        """
+        record_url = self.api_url + '/study/{}/participant/{}/data-points/study'.format(study_id, record_id)
+        response = self.session.get(record_url)
+        record_field_data = response.json()
+        return record_field_data['_embedded']['items']
 
     @staticmethod
     def get_record_id(record):
@@ -121,7 +127,7 @@ class CastorApiClient:
             for field in response_data['_embedded']['fields']:
                 fields.append(field)
                 if self.verbose:
-                    print(field)
+                    logger.info(field)
         return fields
 
     @staticmethod
