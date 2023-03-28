@@ -170,3 +170,13 @@ class CastorApiClient:
         if 'value' in response_data.keys():
             return response_data['value']
         return None
+
+    def get_export_structure_as_csv(self, study_id):
+        """ Returns export structure for given study in CSV format. Just open file
+        for writing and write data to it
+        :param study_id: Study ID
+        """
+        export_data_url = self.api_url + '/study/{}/export/structure'.format(study_id)
+        response = self.session.get(export_data_url)
+        response_data = response.text
+        return response_data

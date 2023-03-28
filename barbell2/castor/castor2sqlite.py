@@ -3,8 +3,6 @@ import json
 import sqlite3
 import logging
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 from datetime import datetime
 from barbell2.castor.api import CastorApiClient
@@ -13,19 +11,19 @@ from barbell2.utils import current_time_secs, elapsed_secs, duration
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 
+CASTOR_TO_SQL_TYPES = {
+    'string': 'TEXT',
+    'textarea': 'TEXT',
+    'radio': 'TINYINT',
+    'dropdown': 'TINYINT',
+    'numeric': 'FLOAT',
+    'date': 'DATE',
+    'year': 'TINYINT',
+}
+
 
 #####################################################################################################################################
 class CastorToSqlite:
-
-    CASTOR_TO_SQL_TYPES = {
-        'string': 'TEXT',
-        'textarea': 'TEXT',
-        'radio': 'TINYINT',
-        'dropdown': 'TINYINT',
-        'numeric': 'FLOAT',
-        'date': 'DATE',
-        'year': 'TINYINT',
-    }
 
     def __init__(self, study_name, client_id, client_secret, output_db_file='castor.db', record_offset=0, max_nr_records=-1, log_level=logging.INFO):
         self.study_name = study_name
@@ -35,7 +33,7 @@ class CastorToSqlite:
         self.record_offset = record_offset
         self.max_nr_records = max_nr_records
         self.log_level = log_level
-        self.castor_to_sql_types = CastorToSqlite.CASTOR_TO_SQL_TYPES
+        self.castor_to_sql_types = CASTOR_TO_SQL_TYPES
         self.executed = False
         self.time_elapsed = 0
         logging.root.setLevel(self.log_level)
@@ -93,9 +91,6 @@ class CastorToSqlite:
                 if field_id not in records_data.keys():
                     records_data[field_id] = {'field_variable_name': field_variable_name, 'field_type': field_type, 'field_values': []}
                 records_data[field_id]['field_values'].append(field_value)
-                # if field_variable_name not in records_data.keys():
-                #     records_data[field_variable_name] = {'field_type': field['field_type'], 'field_values': []}
-                # records_data[field_variable_name]['field_values'].append(field_value)
             elapsed_time = duration(elapsed_secs(start_secs))                
             logger.info('processed record {} in {}'.format(record_id, elapsed_time))
             count += 1
@@ -103,57 +98,6 @@ class CastorToSqlite:
         logger.info('total time elapsed: {}'.format(elapsed_time_total))
         return records_data
         
-    # @staticmethod
-    # def init_records_data_fast(fields):
-    #     records_data = {}
-    #     for field in fields:
-    #         records_data[field['field_id']] = {
-    #             'field_variable_name': field['field_variable_name'],
-    #             'field_type': field['field_type'],
-    #             'field_values': [],
-    #         }
-    #     return records_data
-
-    # def get_records_data_fast(self):
-    #     start_secs_total = current_time_secs()
-    #     records_data = None
-    #     client = CastorApiClient(self.client_id, self.client_secret)
-    #     study = client.get_study(self.study_name)
-    #     assert study is not None, 'Castor API client could not find study {}'.format(self.study_name)
-    #     study_id = client.get_study_id(study)
-    #     logger.info('getting field definitions...')
-    #     fields = client.get_fields(study_id)
-    #     fields_ok = []
-    #     for field in fields:
-    #         if field['field_variable_name'] is None or field['field_type'] is None:
-    #             continue
-    #         if field['field_type'] == 'calculation' or field['field_type'] == 'remark':
-    #             continue
-    #         fields_ok.append(field)
-    #     fields = fields_ok
-    #     if records_data is None:
-    #         logger.info('getting records...')
-    #         records = client.get_records(study_id)
-    #         logger.info('Found {} records to process'.format(len(records)))
-    #         records_data = self.init_records_data_fast(fields)
-    #         count = 0
-    #         for record in records:
-    #             if count < self.record_offset:
-    #                 continue
-    #             if count == self.max_nr_records:
-    #                 break
-    #             start_secs = current_time_secs()
-    #             record_id = client.get_record_id(record)
-    #             record_field_data = client.get_record_field_data(study_id, record_id)
-    #             for field_item in record_field_data:
-    #                 records_data[field_item['field_id']]['field_values'].append(field_item['field_value'])
-    #             elapsed_time = duration(elapsed_secs(start_secs))                
-    #             logger.info('processed record {} in {}'.format(record_id, elapsed_time))
-    #             count += 1
-    #     elapsed_time_total = duration(elapsed_secs(start_secs_total))
-    #     logger.info('total time elapsed: {}'.format(elapsed_time_total))
-    #     return records_data
-
     def generate_sql_field_from_field_type_and_field_variable_name(self, field_type, field_variable_name):
         return '{} {}'.format(field_variable_name, self.castor_to_sql_types[field_type])
 
@@ -228,16 +172,6 @@ class CastorToSqlite:
 #####################################################################################################################################
 class CastorExcelToSqlite:
 
-    CASTOR_TO_SQL_TYPES = {
-        'string': 'TEXT',
-        'textarea': 'TEXT',
-        'radio': 'TINYINT',
-        'dropdown': 'TINYINT',
-        'numeric': 'FLOAT',
-        'date': 'DATE',
-        'year': 'TINYINT',
-    }
-
     FIELDS_TO_SKIP = [
         'Participant Id',
         'Participant Status',
@@ -254,7 +188,8 @@ class CastorExcelToSqlite:
         self.record_offset = record_offset
         self.max_nr_records = max_nr_records
         self.log_level = log_level
-        self.castor_to_sql_types = CastorExcelToSqlite.CASTOR_TO_SQL_TYPES
+        self.castor_to_sql_types = CASTOR_TO_SQL_TYPES
+        logging.root.setLevel(self.log_level)
 
     def set_castor_to_sql_types(self, castor_to_sql_types):
         self.castor_to_sql_types = castor_to_sql_types
@@ -428,51 +363,54 @@ class CastorQuery:
 
 
 #####################################################################################################################################
-class CastorGraphGenerator:
+class CastorStructureToCSV:
 
-    def __init__(self, df):
-        self.df = df
-        self.plt = plt
-        self.output_dir = ''
+    def __init__(self, study_name, client_id, client_secret, output_csv_file='castor.csv', log_level=logging.INFO):
+        self.study_name = study_name
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.output_csv_file = output_csv_file
+        self.log_level = log_level
+        logging.root.setLevel(self.log_level)
 
-    def execute(self):
-        raise NotImplementedError()
-    
-
-#####################################################################################################################################
-class BarchartGenerator(CastorGraphGenerator):
-
-    def __init__(self, df, x, y, title):
-        super().__init__(df)
-        self.x = x
-        self.y = y
-        self.title = title
+    def get_study_structure(self):
+        client = CastorApiClient(self.client_id, self.client_secret)
+        study = client.get_study(self.study_name)
+        assert study is not None, 'Castor API client could not find study {}'.format(self.study_name)
+        study_id = client.get_study_id(study)
+        study_structure = client.get_export_structure_as_csv(study_id)
+        return study_structure
 
     def execute(self):
-        sns.barplot(data=self.df, x=self.x, y=self.y).set(title=self.title)
-        self.plt.xticks(rotation=90)
-        output_file = os.path.join(self.output_dir, f'{self.title}.png')
-        self.plt.savefig(output_file)
-        self.plt.close()
-        return output_file
-
+        study_structure = self.get_study_structure()
+        with open(self.output_csv_file, 'w') as f:
+            f.write(study_structure)
+        
 
 #####################################################################################################################################
 if __name__ == '__main__':
     def main():
-        converter = CastorToSqlite(
-            study_name='ESPRESSO_v2.0_DPCA',
-            client_id=open(os.path.join(os.environ['HOME'], 'castorclientid.txt')).readline().strip(),
-            client_secret=open(os.path.join(os.environ['HOME'], 'castorclientsecret.txt')).readline().strip(),
-            output_db_file='castor.db',
-            cache=True,
-            record_offset=0,
-            max_nr_records=2,
-            log_level=logging.INFO,
-        )
-        converter.execute()
+        # converter = CastorToSqlite(
+        #     study_name='ESPRESSO_v2.0_DPCA',
+        #     client_id=open(os.path.join(os.environ['HOME'], 'castorclientid.txt')).readline().strip(),
+        #     client_secret=open(os.path.join(os.environ['HOME'], 'castorclientsecret.txt')).readline().strip(),
+        #     output_db_file='castor.db',
+        #     cache=True,
+        #     record_offset=0,
+        #     max_nr_records=2,
+        #     log_level=logging.INFO,
+        # )
+        # converter.execute()
         # selector = CastorQuery('/Users/Ralph/Desktop/castor.db')
         # selector.execute('SELECT * FROM data WHERE dpca_datok BETWEEN "2018-05-01" AND "2018-07-01";')
         # selector.to_csv('query_results.csv')
         # selector.to_excel('query_results.xlsx')
+        converter = CastorStructureToCSV(
+            study_name='ESPRESSO_v2.0_DPCA',
+            client_id=open(os.path.join(os.environ['HOME'], 'castorclientid.txt')).readline().strip(),
+            client_secret=open(os.path.join(os.environ['HOME'], 'castorclientsecret.txt')).readline().strip(),
+            output_csv_file='castor.csv',
+            log_level=logging.INFO,
+        )
+        converter.execute()
     main()
