@@ -1,5 +1,4 @@
 import os
-import json
 import sqlite3
 import logging
 import pandas as pd
@@ -8,8 +7,10 @@ from datetime import datetime
 from barbell2.castor.api import CastorApiClient
 from barbell2.utils import current_time_secs, elapsed_secs, duration
 
+
 logging.basicConfig()
 logger = logging.getLogger(__name__)
+
 
 CASTOR_TO_SQL_TYPES = {
     'string': 'TEXT',
@@ -363,7 +364,7 @@ class CastorQuery:
 
 
 #####################################################################################################################################
-class CastorStructureToCSV:
+class CastorDataToCSV:
 
     def __init__(self, study_name, client_id, client_secret, output_csv_file='castor.csv', log_level=logging.INFO):
         self.study_name = study_name
@@ -373,16 +374,16 @@ class CastorStructureToCSV:
         self.log_level = log_level
         logging.root.setLevel(self.log_level)
 
-    def get_study_structure(self):
+    def get_study_data(self):
         client = CastorApiClient(self.client_id, self.client_secret)
         study = client.get_study(self.study_name)
         assert study is not None, 'Castor API client could not find study {}'.format(self.study_name)
         study_id = client.get_study_id(study)
-        study_structure = client.get_export_structure_as_csv(study_id)
+        study_structure = client.get_export_data_as_csv(study_id)
         return study_structure
 
     def execute(self):
-        study_structure = self.get_study_structure()
+        study_structure = self.get_study_data()
         with open(self.output_csv_file, 'w') as f:
             f.write(study_structure)
         
@@ -405,7 +406,7 @@ if __name__ == '__main__':
         # selector.execute('SELECT * FROM data WHERE dpca_datok BETWEEN "2018-05-01" AND "2018-07-01";')
         # selector.to_csv('query_results.csv')
         # selector.to_excel('query_results.xlsx')
-        converter = CastorStructureToCSV(
+        converter = CastorDataToCSV(
             study_name='ESPRESSO_v2.0_DPCA',
             client_id=open(os.path.join(os.environ['HOME'], 'castorclientid.txt')).readline().strip(),
             client_secret=open(os.path.join(os.environ['HOME'], 'castorclientsecret.txt')).readline().strip(),
