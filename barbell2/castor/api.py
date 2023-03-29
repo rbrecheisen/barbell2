@@ -171,22 +171,24 @@ class CastorApiClient:
             return response_data['value']
         return None
 
-    def get_export_data_as_csv(self, study_id):
-        """ Returns export data for given study in CSV format. Just open file
-        for writing and write data to it
+    def get_export_data_as_df(self, study_id):
+        """ Returns export data for given study as a Pandas data frame
         :param study_id: Study ID
         """
+        fields = self.get_fields(study_id)
+        fields_dict = {}
+        for field in fields:
+            fields_dict[field['id']] = field['field_variable_name']
         export_data_url = self.api_url + '/study/{}/export/data'.format(study_id)
         response = self.session.get(export_data_url)
         response_data = response.text
-        return response_data
-
-    def get_export_structure_as_csv(self, study_id):
-        """ Returns export structure for given study in CSV format. Just open file
-        for writing and write data to it
-        :param study_id: Study ID
-        """
-        export_data_url = self.api_url + '/study/{}/export/structure'.format(study_id)
-        response = self.session.get(export_data_url)
-        response_data = response.text
+        lines = response_data.split('\n')
+        header = lines[0]
+        print(header)
+        for line in lines[1:]:
+            # Check that form type = Study?
+            # Get 5th element (field ID) and 6th element (value)
+            items = line.split(';')
+            field_variable_name = fields_dict[items[5]]
+            field_value = items[6]
         return response_data

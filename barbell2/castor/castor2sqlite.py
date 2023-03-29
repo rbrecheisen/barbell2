@@ -379,16 +379,19 @@ class CastorDataToCSV:
         study = client.get_study(self.study_name)
         assert study is not None, 'Castor API client could not find study {}'.format(self.study_name)
         study_id = client.get_study_id(study)
-        study_structure = client.get_export_data_as_csv(study_id)
+        study_structure = client.get_export_data_as_df(study_id)
         return study_structure
 
     def execute(self):
         """
-
+        Download study data as CSV data. We need to transform it to a proper table format
+        before creating the actual CSV file. 
         """
-        study_structure = self.get_study_data()
-        with open(self.output_csv_file, 'w') as f:
-            f.write(study_structure)
+        self.get_study_data()
+        # study_structure = self.get_study_data()
+        # with open(self.output_csv_file, 'w') as f:
+        #     f.write(study_structure)
+        pass
         
 
 #####################################################################################################################################
