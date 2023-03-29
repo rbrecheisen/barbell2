@@ -383,6 +383,9 @@ class CastorDataToCSV:
         return study_structure
 
     def execute(self):
+        """
+
+        """
         study_structure = self.get_study_data()
         with open(self.output_csv_file, 'w') as f:
             f.write(study_structure)
@@ -410,7 +413,7 @@ if __name__ == '__main__':
             study_name='ESPRESSO_v2.0_DPCA',
             client_id=open(os.path.join(os.environ['HOME'], 'castorclientid.txt')).readline().strip(),
             client_secret=open(os.path.join(os.environ['HOME'], 'castorclientsecret.txt')).readline().strip(),
-            output_csv_file='castor.csv',
+            output_csv_file='/Users/ralph/Desktop/castor.csv',
             log_level=logging.INFO,
         )
         converter.execute()
