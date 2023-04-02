@@ -1,8 +1,10 @@
 import json
 import logging
+import pandas as pd
 
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session
+from barbell2.utils import current_time_secs, elapsed_secs, duration
 
 logger = logging.getLogger('__name__')
 
@@ -165,30 +167,7 @@ class CastorApiClient:
         """
         field_data_url = self.api_url + '/study/{}/record/{}/study-data-point/{}'.format(study_id, record_id, field_id)
         response = self.session.get(field_data_url)
-        response_data = response.json()
-        # Check for 'value' key because if field is empty, there will be no 'value' key
-        if 'value' in response_data.keys():
+        if response.status_code == 200:
+            response_data = response.json()
             return response_data['value']
         return None
-
-    def get_export_data_as_df(self, study_id):
-        """ Returns export data for given study as a Pandas data frame
-        :param study_id: Study ID
-        """
-        fields = self.get_fields(study_id)
-        fields_dict = {}
-        for field in fields:
-            fields_dict[field['id']] = field['field_variable_name']
-        export_data_url = self.api_url + '/study/{}/export/data'.format(study_id)
-        response = self.session.get(export_data_url)
-        response_data = response.text
-        lines = response_data.split('\n')
-        header = lines[0]
-        print(header)
-        for line in lines[1:]:
-            # Check that form type = Study?
-            # Get 5th element (field ID) and 6th element (value)
-            items = line.split(';')
-            field_variable_name = fields_dict[items[5]]
-            field_value = items[6]
-        return response_data

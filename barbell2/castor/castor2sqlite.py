@@ -1,11 +1,12 @@
 import os
+import time
 import sqlite3
 import logging
 import pandas as pd
 
 from datetime import datetime
 from barbell2.castor.api import CastorApiClient
-from barbell2.utils import current_time_secs, elapsed_secs, duration
+from barbell2.utils import current_time_secs, current_time_millis, elapsed_secs, elapsed_millis, duration
 
 
 logging.basicConfig()
@@ -80,20 +81,27 @@ class CastorToSqlite:
                 continue
             if count == self.max_nr_records:
                 break
-            start_secs = current_time_secs()
+            start_secs_row = current_time_secs()
             record_id = client.get_record_id(record)
+            logger.info(f'Starting to process record {record_id}...')
             for field in fields:
                 field_id = field['field_id']
                 field_type = field['field_type']
                 field_variable_name = field['field_variable_name']
+                start_millis_field = current_time_millis()
                 field_value = client.get_field_value(study_id, record_id, field['id'])
+                elapsed_millis_field = elapsed_millis(start_millis_field)
+                if elapsed_millis_field < 1000.0:
+                    # If request came back faster than 1 second, sleep awhile until we have a full second
+                    # before moving on to the next request
+                    time.sleep((1000.0 - elapsed_millis_field) / 1000.0)
                 if field_value is None:
                     field_value = ''
                 if field_id not in records_data.keys():
                     records_data[field_id] = {'field_variable_name': field_variable_name, 'field_type': field_type, 'field_values': []}
                 records_data[field_id]['field_values'].append(field_value)
-            elapsed_time = duration(elapsed_secs(start_secs))                
-            logger.info('processed record {} in {}'.format(record_id, elapsed_time))
+            elapsed_time_row = duration(elapsed_secs(start_secs_row))                
+            logger.info('processed record {} in {}'.format(record_id, elapsed_time_row))
             count += 1
         elapsed_time_total = duration(elapsed_secs(start_secs_total))
         logger.info('total time elapsed: {}'.format(elapsed_time_total))
@@ -342,82 +350,22 @@ class CastorQuery:
         self.output = pd.DataFrame(df_data, columns=self.get_column_names(data))
         return self.output
 
-    def usage():
-        text = """
-        Usage:
-        ======
-        search_engine = CastorQuery(db_file)
-        result = search_engine.execute('SELECT * FROM data WHERE my_date BETWEEN "2020-01-01" AND "2021-01-01"')
-        result.to_csv('result.csv')
-
-        SQL hints:
-        ==========
-        - All data is stored in a table called "data" so your FROM clause should always be "FROM data"
-        - Dates are always written between double-quotes, in the format "yyyy-mm-dd"
-        - You can retrieve records between two dates using BETWEEN "date1" AND "date2" (where date2 is included)
-        - Numerical values can be written without quotes
-        - Equals is written as "="
-        - Not equals is written as "!=" or "<>"
-        - Getting maximum value (or date) from column: SELECT MAX(<column>) FROM data
-        """
-        logger.info(text)
-
-
-#####################################################################################################################################
-class CastorDataToCSV:
-
-    def __init__(self, study_name, client_id, client_secret, output_csv_file='castor.csv', log_level=logging.INFO):
-        self.study_name = study_name
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.output_csv_file = output_csv_file
-        self.log_level = log_level
-        logging.root.setLevel(self.log_level)
-
-    def get_study_data(self):
-        client = CastorApiClient(self.client_id, self.client_secret)
-        study = client.get_study(self.study_name)
-        assert study is not None, 'Castor API client could not find study {}'.format(self.study_name)
-        study_id = client.get_study_id(study)
-        study_structure = client.get_export_data_as_df(study_id)
-        return study_structure
-
-    def execute(self):
-        """
-        Download study data as CSV data. We need to transform it to a proper table format
-        before creating the actual CSV file. 
-        """
-        self.get_study_data()
-        # study_structure = self.get_study_data()
-        # with open(self.output_csv_file, 'w') as f:
-        #     f.write(study_structure)
-        pass
-        
 
 #####################################################################################################################################
 if __name__ == '__main__':
     def main():
-        # converter = CastorToSqlite(
-        #     study_name='ESPRESSO_v2.0_DPCA',
-        #     client_id=open(os.path.join(os.environ['HOME'], 'castorclientid.txt')).readline().strip(),
-        #     client_secret=open(os.path.join(os.environ['HOME'], 'castorclientsecret.txt')).readline().strip(),
-        #     output_db_file='castor.db',
-        #     cache=True,
-        #     record_offset=0,
-        #     max_nr_records=2,
-        #     log_level=logging.INFO,
-        # )
-        # converter.execute()
+        extractor = CastorToSqlite(
+            study_name='ESPRESSO_v2.0_DPCA',
+            client_id=open(os.path.join(os.environ['HOME'], 'castorclientid.txt')).readline().strip(),
+            client_secret=open(os.path.join(os.environ['HOME'], 'castorclientsecret.txt')).readline().strip(),
+            output_db_file='castor.db',
+            record_offset=0,
+            max_nr_records=1,
+            log_level=logging.INFO,
+        )
+        extractor.execute()
         # selector = CastorQuery('/Users/Ralph/Desktop/castor.db')
         # selector.execute('SELECT * FROM data WHERE dpca_datok BETWEEN "2018-05-01" AND "2018-07-01";')
         # selector.to_csv('query_results.csv')
         # selector.to_excel('query_results.xlsx')
-        converter = CastorDataToCSV(
-            study_name='ESPRESSO_v2.0_DPCA',
-            client_id=open(os.path.join(os.environ['HOME'], 'castorclientid.txt')).readline().strip(),
-            client_secret=open(os.path.join(os.environ['HOME'], 'castorclientsecret.txt')).readline().strip(),
-            output_csv_file='/Users/ralph/Desktop/castor.csv',
-            log_level=logging.INFO,
-        )
-        converter.execute()
     main()
