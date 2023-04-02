@@ -26,7 +26,18 @@ CASTOR_TO_SQL_TYPES = {
 #####################################################################################################################################
 class CastorToSqlite:
 
-    def __init__(self, study_name, client_id, client_secret, output_db_file='castor.db', record_offset=0, max_nr_records=-1, log_level=logging.INFO, rate_limiting=True):
+    def __init__(
+            self, 
+            study_name, 
+            client_id, 
+            client_secret, 
+            output_db_file='castor.db', 
+            record_offset=0, 
+            max_nr_records=-1, 
+            log_level=logging.INFO, 
+            rate_limiting=True,
+            nr_secs_before_recreate_session=300,
+        ):
         self.study_name = study_name
         self.client_id = client_id
         self.client_secret = client_secret
@@ -36,7 +47,7 @@ class CastorToSqlite:
         self.log_level = log_level
         self.castor_to_sql_types = CASTOR_TO_SQL_TYPES
         self.rate_limiting = rate_limiting
-        self.time_elapsed = 0
+        self.nr_secs_before_recreate_session = nr_secs_before_recreate_session
         logging.root.setLevel(self.log_level)
         logging.info(f'''
         Running CastorToSqlite(
@@ -45,7 +56,8 @@ class CastorToSqlite:
             record_offset={record_offset},
             max_nr_records={max_nr_records},
             log_level={log_level},
-            rate_limiting={rate_limiting}
+            rate_limiting={rate_limiting},
+            nr_secs_before_recreate_session={nr_secs_before_recreate_session}
         )''')
 
     def check_output_db_file(output_db_file):
