@@ -40,7 +40,6 @@ class CastorApiClient:
         return client_session
 
     def recreate_session(self):
-        logger.info('Recreating session...')
         self.session = self.create_session(self.client_id, self.client_secret)
 
     def get_studies(self):
