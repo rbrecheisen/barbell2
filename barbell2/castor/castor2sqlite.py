@@ -27,7 +27,7 @@ CASTOR_TO_SQL_TYPES = {
 #####################################################################################################################################
 class CastorToSqlite:
 
-    def __init__(self, study_name, client_id, client_secret, output_db_file='castor.db', record_offset=0, max_nr_records=-1, log_level=logging.INFO):
+    def __init__(self, study_name, client_id, client_secret, output_db_file='castor.db', record_offset=0, max_nr_records=-1, log_level=logging.INFO, rate_limiting=True):
         self.study_name = study_name
         self.client_id = client_id
         self.client_secret = client_secret
@@ -36,7 +36,7 @@ class CastorToSqlite:
         self.max_nr_records = max_nr_records
         self.log_level = log_level
         self.castor_to_sql_types = CASTOR_TO_SQL_TYPES
-        self.executed = False
+        self.rate_limiting = rate_limiting
         self.time_elapsed = 0
         logging.root.setLevel(self.log_level)
 
@@ -91,7 +91,7 @@ class CastorToSqlite:
                 start_millis_field = current_time_millis()
                 field_value = client.get_field_value(study_id, record_id, field['id'])
                 elapsed_millis_field = elapsed_millis(start_millis_field)
-                if elapsed_millis_field < 1000.0:
+                if self.rate_limiting and elapsed_millis_field < 1000.0:
                     # If request came back faster than 1 second, sleep awhile until we have a full second
                     # before moving on to the next request
                     time.sleep((1000.0 - elapsed_millis_field) / 1000.0)
