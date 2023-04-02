@@ -125,7 +125,7 @@ class CastorToSqlite:
                 # Check if we need to recreate the session
                 if elapsed_recreate_session > self.nr_secs_before_recreate_session:
                     start_recreate_session = current_time_secs()
-                    self.client.recreate_session()
+                    client.recreate_session()
             elapsed_time_row = elapsed_secs(start_secs_row)
             logger.info('processed record {} in {}'.format(record_id, duration(elapsed_time_row)))
             count += 1
