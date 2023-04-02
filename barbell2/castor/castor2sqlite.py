@@ -96,6 +96,7 @@ class CastorToSqlite:
         count = 0
         records = client.get_records(study_id)
         logger.info('Found {} records to process'.format(len(records)))
+        start_recreate_session = current_time_secs()
         for record in records:
             if count < self.record_offset:
                 continue
@@ -104,7 +105,6 @@ class CastorToSqlite:
             start_secs_row = current_time_secs()
             record_id = client.get_record_id(record)
             logger.info(f'Starting to process record {record_id}...')
-            count = 1
             for field in fields:
                 field_id = field['field_id']
                 field_type = field['field_type']
@@ -121,12 +121,13 @@ class CastorToSqlite:
                 if field_id not in records_data.keys():
                     records_data[field_id] = {'field_variable_name': field_variable_name, 'field_type': field_type, 'field_values': []}
                 records_data[field_id]['field_values'].append(field_value)
-                logger.info(f' > processed field {count} out of {len(fields)}')
-                count += 1
+                elapsed_recreate_session = elapsed_secs(start_recreate_session)
+                # Check if we need to recreate the session
+                if elapsed_recreate_session > self.nr_secs_before_recreate_session:
+                    start_recreate_session = current_time_secs()
+                    self.client.recreate_session()
             elapsed_time_row = elapsed_secs(start_secs_row)
             logger.info('processed record {} in {}'.format(record_id, duration(elapsed_time_row)))
-            if elapsed_time_row > self.nr_secs_before_recreate_session:
-                self.client.recreate_session()
             count += 1
         elapsed_time_total = duration(elapsed_secs(start_secs_total))
         logger.info('total time elapsed: {}'.format(elapsed_time_total))
