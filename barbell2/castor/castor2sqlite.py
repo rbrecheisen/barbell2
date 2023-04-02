@@ -12,7 +12,6 @@ from barbell2.utils import current_time_secs, current_time_millis, elapsed_secs,
 logging.basicConfig()
 logger = logging.getLogger(__name__)
 
-
 CASTOR_TO_SQL_TYPES = {
     'string': 'TEXT',
     'textarea': 'TEXT',
@@ -93,6 +92,7 @@ class CastorToSqlite:
             start_secs_row = current_time_secs()
             record_id = client.get_record_id(record)
             logger.info(f'Starting to process record {record_id}...')
+            count = 1
             for field in fields:
                 field_id = field['field_id']
                 field_type = field['field_type']
@@ -109,6 +109,8 @@ class CastorToSqlite:
                 if field_id not in records_data.keys():
                     records_data[field_id] = {'field_variable_name': field_variable_name, 'field_type': field_type, 'field_values': []}
                 records_data[field_id]['field_values'].append(field_value)
+                logger.info(f' > processed field {count} out of {len(fields)}')
+                count += 1
             elapsed_time_row = duration(elapsed_secs(start_secs_row))                
             logger.info('processed record {} in {}'.format(record_id, elapsed_time_row))
             count += 1
