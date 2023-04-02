@@ -45,8 +45,8 @@ class CastorToSqlite:
         self.output_db_file = output_db_file
         if add_timestamp:
             items = os.path.splitext(self.output_db_file)
-            timestamp = datetime.now().strftime('%Y%m%d%H%M%S.%f')
-            self.output_db_file = f'{items[:-1]}-{timestamp}.{items[-1]}'            
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            self.output_db_file = f'{items[0]}-{timestamp}{items[1]}'
         self.record_offset = record_offset
         self.max_nr_records = max_nr_records
         self.log_level = log_level
