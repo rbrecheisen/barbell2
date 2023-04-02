@@ -18,7 +18,9 @@ class CastorApiClient:
         self.verbose = verbose
         if self.verbose:
             logger.info(f'__init__()')
-        self.session = self.create_session(client_id, client_secret)
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.session = self.create_session(self.client_id, self.client_secret)
         self.studies = self.get_studies()
 
     def create_session(self, client_id, client_secret):
@@ -36,6 +38,10 @@ class CastorApiClient:
             client_secret=client_secret,
         )
         return client_session
+
+    def recreate_session(self):
+        logger.info('Recreating session...')
+        self.session = self.create_session(self.client_id, self.client_secret)
 
     def get_studies(self):
         """ Returns list of study objects

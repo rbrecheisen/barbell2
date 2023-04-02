@@ -111,8 +111,10 @@ class CastorToSqlite:
                 records_data[field_id]['field_values'].append(field_value)
                 logger.info(f' > processed field {count} out of {len(fields)}')
                 count += 1
-            elapsed_time_row = duration(elapsed_secs(start_secs_row))                
-            logger.info('processed record {} in {}'.format(record_id, elapsed_time_row))
+            elapsed_time_row = elapsed_secs(start_secs_row)
+            logger.info('processed record {} in {}'.format(record_id, duration(elapsed_time_row)))
+            if elapsed_time_row > self.nr_secs_before_recreate_session:
+                self.client.recreate_session()
             count += 1
         elapsed_time_total = duration(elapsed_secs(start_secs_total))
         logger.info('total time elapsed: {}'.format(elapsed_time_total))
