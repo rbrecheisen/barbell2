@@ -32,6 +32,7 @@ class CastorToSqlite:
             client_id, 
             client_secret, 
             output_db_file='castor.db', 
+            add_timestamp=True,
             record_offset=0, 
             max_nr_records=-1, 
             log_level=logging.INFO, 
@@ -42,6 +43,10 @@ class CastorToSqlite:
         self.client_id = client_id
         self.client_secret = client_secret
         self.output_db_file = output_db_file
+        if add_timestamp:
+            items = os.path.splitext(self.output_db_file)
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S.%f')
+            self.output_db_file = f'{items[:-1]}-{timestamp}.{items[-1]}'            
         self.record_offset = record_offset
         self.max_nr_records = max_nr_records
         self.log_level = log_level
@@ -51,13 +56,13 @@ class CastorToSqlite:
         logging.root.setLevel(self.log_level)
         logging.info(f'''
         Running CastorToSqlite(
-            study_name={study_name}, 
-            output_db_file={output_db_file}, 
-            record_offset={record_offset},
-            max_nr_records={max_nr_records},
-            log_level={log_level},
-            rate_limiting={rate_limiting},
-            nr_secs_before_recreate_session={nr_secs_before_recreate_session}
+            study_name={self.study_name}, 
+            output_db_file={self.output_db_file}, 
+            record_offset={self.record_offset},
+            max_nr_records={self.max_nr_records},
+            log_level={self.log_level},
+            rate_limiting={self.rate_limiting},
+            nr_secs_before_recreate_session={self.nr_secs_before_recreate_session}
         )''')
 
     def check_output_db_file(output_db_file):
