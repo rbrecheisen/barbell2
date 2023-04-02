@@ -39,6 +39,15 @@ class CastorToSqlite:
         self.rate_limiting = rate_limiting
         self.time_elapsed = 0
         logging.root.setLevel(self.log_level)
+        logging.info(f'''
+        Running CastorToSqlite(
+            study_name={study_name}, 
+            output_db_file={output_db_file}, 
+            record_offset={record_offset},
+            max_nr_records={max_nr_records},
+            log_level={log_level},
+            rate_limiting={rate_limiting}
+        )''')
 
     def check_output_db_file(output_db_file):
         if os.path.isfile(output_db_file):
