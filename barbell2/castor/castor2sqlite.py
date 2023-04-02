@@ -104,7 +104,6 @@ class CastorToSqlite:
                 break
             start_secs_row = current_time_secs()
             record_id = client.get_record_id(record)
-            logger.info(f'Starting to process record {record_id}...')
             for field in fields:
                 field_id = field['field_id']
                 field_type = field['field_type']
