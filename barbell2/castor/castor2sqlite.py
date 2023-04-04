@@ -32,9 +32,7 @@ class CastorToSqlite:
             client_id, 
             client_secret, 
             output_db_file='castor.db', 
-            add_timestamp=True,
-            record_offset=0, 
-            max_nr_records=-1, 
+            add_timestamp=False,
             log_level=logging.INFO, 
         ):
         self.study_name = study_name
@@ -45,8 +43,6 @@ class CastorToSqlite:
             items = os.path.splitext(self.output_db_file)
             timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
             self.output_db_file = f'{items[0]}-{timestamp}{items[1]}'
-        self.record_offset = record_offset
-        self.max_nr_records = max_nr_records
         self.log_level = log_level
         self.castor_to_sql_types = CASTOR_TO_SQL_TYPES
         logging.root.setLevel(self.log_level)
@@ -55,8 +51,6 @@ class CastorToSqlite:
             study_name={self.study_name}, 
             output_db_file={self.output_db_file}, 
             add_timestamp={add_timestamp},
-            record_offset={self.record_offset},
-            max_nr_records={self.max_nr_records},
             log_level={self.log_level},
         )''')
 
@@ -81,63 +75,6 @@ class CastorToSqlite:
         records_data = client.get_study_data(study_id)
         return records_data
 
-    # def get_records_data(self):
-    #     start_secs_total = current_time_secs()
-    #     client = CastorApiClient(self.client_id, self.client_secret)
-    #     study = client.get_study(self.study_name)
-    #     assert study is not None, 'Castor API client could not find study {}'.format(self.study_name)
-    #     study_id = client.get_study_id(study)
-    #     logger.info('getting field definitions...')
-    #     fields = client.get_fields(study_id)
-    #     fields_ok = []
-    #     for field in fields:
-    #         if field['field_variable_name'] is None or field['field_type'] is None:
-    #             continue
-    #         if field['field_type'] == 'calculation' or field['field_type'] == 'remark':
-    #             continue
-    #         fields_ok.append(field)
-    #     fields = fields_ok
-    #     logger.info('getting records data...')
-    #     records_data = {}
-    #     count = 0
-    #     records = client.get_records(study_id)
-    #     logger.info('Found {} records to process'.format(len(records)))
-    #     start_recreate_session = current_time_secs()
-    #     for record in records:
-    #         if count < self.record_offset:
-    #             continue
-    #         if count == self.max_nr_records:
-    #             break
-    #         start_secs_row = current_time_secs()
-    #         record_id = client.get_record_id(record)
-    #         for field in fields:
-    #             field_id = field['field_id']
-    #             field_type = field['field_type']
-    #             field_variable_name = field['field_variable_name']
-    #             start_millis_field = current_time_millis()
-    #             field_value = client.get_field_value(study_id, record_id, field['id'])
-    #             elapsed_millis_field = elapsed_millis(start_millis_field)
-    #             if self.rate_limiting and elapsed_millis_field < 1000.0:
-    #                 # If request came back faster than 1 second, sleep awhile until we have a full second
-    #                 # before moving on to the next request
-    #                 time.sleep((1000.0 - elapsed_millis_field) / 1000.0)
-    #             if field_value is None:
-    #                 field_value = ''
-    #             if field_id not in records_data.keys():
-    #                 records_data[field_id] = {'field_variable_name': field_variable_name, 'field_type': field_type, 'field_values': []}
-    #             records_data[field_id]['field_values'].append(field_value)
-    #             elapsed_recreate_session = elapsed_secs(start_recreate_session)
-    #             # Check if we need to recreate the session
-    #             if elapsed_recreate_session > self.nr_secs_before_recreate_session:
-    #                 start_recreate_session = current_time_secs()
-    #                 client.recreate_session()
-    #         elapsed_time_row = elapsed_secs(start_secs_row)
-    #         logger.info('processed record {} in {}'.format(record_id, duration(elapsed_time_row)))
-    #         count += 1
-    #     elapsed_time_total = duration(elapsed_secs(start_secs_total))
-    #     logger.info('total time elapsed: {}'.format(elapsed_time_total))
-    #     return records_data
-        
     def generate_sql_field_from_field_type_and_field_variable_name(self, field_type, field_variable_name):
         return '{} {}'.format(field_variable_name, self.castor_to_sql_types[field_type])
 
