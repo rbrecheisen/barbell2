@@ -379,6 +379,9 @@ class CastorQuery:
         for column in data.description:
             column_names.append(column[0])
         return column_names
+    
+    def to_csv(self, output_file):
+        self.output.to_csv(output_file, sep=';', index=False)
 
     def execute(self, query):
         self.output = None
@@ -387,7 +390,7 @@ class CastorQuery:
         df_data = []
         for result in data:
             df_data.append(result)
-        self.output = pd.DataFrame(df_data, columns=self.get_column_names(data))
+        self.output = pd.DataFrame(df_data, columns=self.get_column_names(data))        
         return self.output
 
 
@@ -398,62 +401,12 @@ if __name__ == '__main__':
             study_name='ESPRESSO_v2.0_DPCA',
             client_id=open(os.path.join(os.environ['HOME'], 'castorclientid.txt')).readline().strip(),
             client_secret=open(os.path.join(os.environ['HOME'], 'castorclientsecret.txt')).readline().strip(),
-            output_db_file='castor.db',
+            output_db_file='/Users/Ralph/Desktop/castor.db',
             add_timestamp=False,
             log_level=logging.INFO,
         )
         extractor.execute()
-
-        # selector = CastorQuery('/Users/Ralph/Desktop/castor.db')
-        # selector.execute('SELECT * FROM data WHERE dpca_datok BETWEEN "2018-05-01" AND "2018-07-01";')
-        # selector.to_csv('query_results.csv')
-        # selector.to_excel('query_results.xlsx')
-
-        import json
-        with open('/Users/Ralph/Desktop/study_structure.json', 'r') as f:
-            study_structure = json.load(f)
-        with open('/Users/Ralph/Desktop/study_data.json', 'r') as f:
-            study_data = json.load(f)
-
-        # lines = []
-        # lines.append('participant_id;dpca_laparodat;dpca_klaar;dpca_datcom;dpca_comlong;dpca_laparodat;dpca_datovl')
-        # for record_id in study_data.keys():
-        #     for field_id in study_data[record_id].keys():                
-        #         if study_structure[field_id][0] == 'dpca_laparodat':
-        #             field_value = study_data[record_id][field_id]
-        #             if field_value == '25/06/2018':
-        #                 print(record_id)
-        #                 break
-        #         if study_structure[field_id][0] == 'dpca_klaar':
-        #             pass
-        #         if study_structure[field_id][0] == 'dpca_datcom':
-        #             pass
-        #         if study_structure[field_id][0] == 'dpca_comlong':
-        #             pass
-        #         if study_structure[field_id][0] == 'dpca_laparodat':
-        #             pass
-        #         if study_structure[field_id][0] == 'dpca_datovl':
-        #             pass
-
-        field_variable_name = 'dpca_datovl'
-        # old_field_value = '25/06/2018'; new_field_value = '"25-06-2018"'
-        # old_field_value = '31/05/2019'; new_field_value = '"31-05-2019"'
-        # old_field_value = '14-04-Niet'; new_field_value = '"14-04-2019"'
-        # old_field_value = '"conform beeld preoperatief"'; new_field_value = '1'
-        # old_field_value = '"echter geen optie dit aan te geven"'; new_field_value = '0'
-        # old_field_value = '31/05/2019'; new_field_value = '"31-05-2019"'
-        lines = []
-        lines.append(f'participant_id;{field_variable_name};dpca_comments')
-        for field_id in study_structure.keys():
-            if study_structure[field_id][0] == field_variable_name:
-                for record_id in study_data.keys():
-                    if field_id in study_data[record_id].keys():
-                        field_value = study_data[record_id][field_id]
-                        if field_value == old_field_value:
-                            lines.append(f'{record_id};{new_field_value};"{field_variable_name}={field_value}"')
-                            break
-                break
-        with open(f'/Users/Ralph/Desktop/{field_variable_name}.csv', 'w') as f:
-            for line in lines:
-                f.write(line + '\n')
+        selector = CastorQuery('/Users/Ralph/Desktop/castor.db')
+        selector.execute('SELECT dpca_datok FROM data WHERE dpca_datok BETWEEN "2018-05-01" AND "2018-07-01";')
+        selector.to_csv('/Users/Ralph/Desktop/castor_query_results.csv')
     main()
