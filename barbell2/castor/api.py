@@ -193,6 +193,8 @@ class CastorApiClient:
                     field_id = items[8]
                     field_variable_name = items[9]
                     field_defs[field_id] = [field_variable_name, field_type]
+        with open('/Users/Ralph/Desktop/study_structure.json', 'w') as f:
+            json.dump(field_defs, f, indent=4)
         logger.info('getting study data...')
         # "Study ID";"Record ID";"Form Type";"Form Instance ID";"Form Instance Name";"Field ID";Value;Date;"User ID"
         study_data_url = self.api_url + '/study/{}/export/data'.format(study_id)
@@ -209,8 +211,8 @@ class CastorApiClient:
                     field_id = items[5]
                     field_value = items[6]
                     records[record_id][field_id] = field_value
-        # with open('/Users/Ralph/Desktop/records.json', 'w') as f:
-        #     json.dump(records, f, indent=4)
+        with open('/Users/Ralph/Desktop/study_data.json', 'w') as f:
+            json.dump(records, f, indent=4)
         logger.info('building dataset...')
         records_data = {}
         for field_id in field_defs.keys():
