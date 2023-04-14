@@ -178,9 +178,6 @@ class CastorApiClient:
         return None
 
     def get_study_data(self, study_id):
-        """ Returns all study data as a Pandas dataframe
-        :param study_id: Study ID
-        """
         logger.info('getting study structure...')
         study_structure_url = self.api_url + '/study/{}/export/structure'.format(study_id)
         response = self.session.get(study_structure_url)
@@ -193,8 +190,6 @@ class CastorApiClient:
                     field_id = items[8]
                     field_variable_name = items[9]
                     field_defs[field_id] = [field_variable_name, field_type]
-        # with open('/Users/Ralph/Desktop/study_structure.json', 'w') as f:
-        #     json.dump(field_defs, f, indent=4)
         logger.info('getting study data...')
         study_data_url = self.api_url + '/study/{}/export/data'.format(study_id)
         response = self.session.get(study_data_url)
@@ -210,9 +205,8 @@ class CastorApiClient:
                     field_id = items[5]
                     field_value = items[6]
                     records[record_id][field_id] = field_value
-        # with open('/Users/Ralph/Desktop/study_data.json', 'w') as f:
-        #     json.dump(records, f, indent=4)
         logger.info('building dataset...')
+        # Object records_data is a dictionary with a key for every field
         records_data = {}
         for field_id in field_defs.keys():
             field_variable_name = field_defs[field_id][0]
@@ -224,5 +218,4 @@ class CastorApiClient:
                     records_data[field_id]['field_values'].append(records[record_id][field_id])
                 else:
                     records_data[field_id]['field_values'].append('')
-        # print(json.dumps(records_data, indent=4))
         return records_data
